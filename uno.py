@@ -1,58 +1,66 @@
 from random import *
 
 """
-ATTENTION Créer une fonction de recyclage des cartes
+
 """
 
-    
-        
+def initialisation(): 
+  #sauf si tu trouves une autre méthode, je suis obligé de passer le deck en global pour qu'il soit utilisable par les joueurs
+  print("Bienvenue !")
+  global deck
+  deck=[["+4",0] , ["+4",0]  , ["+4",0]  , ["+4",0]  , ["change",0] , ["change",0] , ["change",0] , ["change",0] ]
+  val=[0,1,2,3,4,5,6,7,8,9,"+2",1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,"+2","sens","sens","no","no"]
+  colors=["j","v","b","r"]
+  for i in range(len(val)):
+      for j in range(len(colors)):
+          deck.append([val[i],colors[j]])
+  shuffle(deck)
+  routine()
+  
 class Mj():
   def __init__(self, nombreJoueurs=2, ):
-    player = []
+    self.player = []
     self.alivePlayers= [i for i in range(nombreJoueurs)]
     self.sens = True
-    self.lastPlayer = 0 #dernier joueur ayant joué
-    
+    self.lastPlayer = nombreJoueurs-1 #dernier joueur ayant joué
+
     self.chainMemory=0
-    
+    self.battle=False
     for i in range(nombreJoueurs):
-      player.append(Player(i))
+      self.player.append(Player(i))
     
     
-    self.deck=[["+4",0] , ["+4",0]  , ["+4",0]  , ["+4",0]  , ["change",0] , ["change",0] , ["change",0] , ["change",0] ]
-    val=[0,1,2,3,4,5,6,7,8,9,"+2",1,2,3,4,5,6,7,8,9,"+2","sens","sens","no","no"]
-    colors=["j","v","b","r"]
-    for i in range(len(val)):
-        for j in range(len(colors)):
-            self.deck.append([val[i],color[j]])
-    shuffle(self.deck)
+    
     self.table=deck.pop(0)
     
     self.bin = []
     
-    while type(table[0])!=type(1): #si la 1ere carte est "spéciale" 
+    while type(self.table[0])!=type(1): #si la 1ere carte est "spéciale" 
       self.bin.append(self.table)  #on repioche jusqu'à l'obtention d'un nbr
-      self.table=self.deck.pop(0)
+      self.table=deck.pop(0)
       
   def whosNext(self):
    
     
-    if self.table[0]!="no":
-      if sens : return alivePlayer[(self.lastPlayer + 2*True)%(len(self.alivePlayers))]
-      else : return self.alivePlayers[(self.lastPlayer - 2*True + len(self.alivePlayers))%(len(self.alivePlayers))]
+    if self.table[0]=="no":
+      if self.sens : return self.alivePlayers[(self.lastPlayer + 2*1)%(len(self.alivePlayers))]
+      else : return self.alivePlayers[(self.lastPlayer - 2*1 + len(self.alivePlayers))%(len(self.alivePlayers))]
     
     else :
-      if sens : return (self.lastPlayer + True)%(len(self.alivePlayers))
-      else : return (self.lastPlayer - True + len(self.alivePlayers))%(len(self.alivePlayers))
+      if self.sens : return (self.lastPlayer + 1)%(len(self.alivePlayers))
+      else : return (self.lastPlayer - 1)%(len(self.alivePlayers))
       
   
   def call(self):
-    called=self.whosnext()
-    action=Player[called].play()
+    called=self.whosNext()
+    print("\nC'est le tour du joueur {} !".format(called+1))
+    print(self.table)
+    input("Appuyer sur une touche...")
+    action=self.player[called].play()
     return called, action
   
   def validation(self, act):
-    if table[0]!="+2" and table[0]!="+4" : #si on a pas de surenchère, 
+    if (self.table[0]!="+2" and self.table[0]!="+4") or self.battle==False : #si on a pas de surenchère, 
       if act=="pioche": #le joueur peut effectuer un tour "normal" (jouer/piocher)
         return True
         
@@ -71,7 +79,7 @@ class Mj():
       if act=="pioche" :
         return True
         
-      elif act[0]==table[0]: #surenchère
+      elif act[0]==self.table[0]: #surenchère
         return True
       
       else : # mauvaise carte
@@ -80,49 +88,49 @@ class Mj():
       
   def ParentDeJeu(self):
     '''
-    fct qui appelle jeu et le rapelle après ne pioche
+    fct qui appelle jeu et le rapelle après une pioche
     '''
     
     replay=False
-    endTurn=self.jeu(replay)
+    endTurn, called=self.jeu(replay)
     if endTurn==False :
       replay=True
       self.jeu(replay)
-      
+    self.lastPlayer=called 
   
   def jeu(self, replay):
     called, action=self.call()
     test=self.validation(action)
     while test != True :
-      print("Action Impossible")
+      print("\nAction Impossible")
       called, action=self.call()
       test=self.validation(action)
-    
-    
+      
     endTurn = False
     
+    
     if action == "pioche" and replay == False:
-      if table[0]!="+2" and table[0]!="+4" : #si on a pas de surenchère
-        Player[called].pioche()
+      if self.table[0]!="+2" and self.table[0]!="+4" : #si on a pas de surenchère
+        self.player[called].pioche()
         endTurn=False
-      elif table[0]="+2" :
+      elif self.table[0]=="+2" and self.battle==True :
         self.chainMemory+=2
         endTurn=True
-        for i in range(chainMemory) :
-          Player[called].pioche()
+        for i in range(int(self.chainMemory/2)) :
+          self.player[called].pioche()
         self.chainMemory=0
         
-      elif table[0]="+4" :
+      elif self.table[0]=="+4" and self.battle==True:
         self.chainMemory+=4
         endTurn=True
-        for i in range(chainMemory) :
-          Player[called].pioche()
+        for i in range(int(self.chainMemory/2)) :
+          self.player[called].pioche()
         self.chainMemory=0
-        
+      self.battle=False
         
     elif action == "pioche" and replay == True:
       endTurn = True
-      
+      self.battle=False
       
     else :
       self.bin.append(self.table)
@@ -133,39 +141,67 @@ class Mj():
         endTurn = True
         
       if self.table[0]=="change":
-        self.table[1]=Player(called).askColor()
+        self.table[1]=self.player[called].askColor()
         endTurn = True
         
-      elif self.table[0]=="+2" :
+      if self.table[0]=="+2" :
         self.chainMemory+=2
         endTurn = True
-        
-      elif self.table[0]=="+4" :
+        self.battle=True
+      if self.table[0]=="+4" :
+        self.table[1]=self.player[called].askColor()
         self.chainMemory+=4
         endTurn = True
+        self.battle=True
+      else :
+        endTurn=True
         
-    return endTurn
+    return endTurn, called
     
-      
-      
+  
     
+
+
 
   
 class Player():
     def __init__(self, number):
       self.player=number
       self.main= [deck.pop(0) for i in range(7)]
+      self.gagne=False
         
     def play(self):
       print(self.main)
-      indice=int(input("indice de la carte à jouer :"))
+      indice = input("indice de la carte à jouer  (-1 pour piocher/passer") :)
+      ActionCorrecte=False
+      while ActionCorrecte==False:
+        try :
+          indice = int(indice)
+          ActionCorrecte=True
+        except :
+          indice = input("merci d'entrer un entier :")
       if indice<0:
         return "pioche"
       else :
-        return self.main[indice]
+        if indice>=len(self.main):
+          indice=len(self.main)-1
+        carte = self.main[indice]
+        del self.main[indice]
+        if len(self.main)==1 :
+          print("Uno !")
+        
+        elif len(self.main)== 0 :
+          self.victoire()
+        return carte
+        
       
     def pioche(self):
+      print("Joueur {} pioche !".format(self.player))
+      if len(deck)==0 :
+        routine.recyclage()
+        print("Reconstruction du deck...")
       self.main.append(deck.pop())
+      
       
     def askColor(self):
       color = 'satan'
@@ -173,13 +209,36 @@ class Player():
       while colors.count(color) == 0:
         color = input("r/v/j/b")
       return color
-      
-
+    
+    def victoire(self):
+      self.gagne=True
 
 def routine():
-    print ""
+  Sensei=Mj(4)
+  
+  
+  def recyclage() :
+    deck = Sensei.bin
+    shuffle(deck)
+    Sensei.bin=[]
+    for i in len(deck): # on redonne aux cartes qui ont changé de couleur le noir d'origine
+      if deck[i][0] == "change" or deck[i][0] == "+4" :
+        deck[i][1] = 0
+        
+  while len(Sensei.alivePlayers)!=1 :
+    Sensei.ParentDeJeu()
+      
+    for i in range(len(Sensei.alivePlayers)) :
+        if Sensei.player[Sensei.alivePlayers[i]].gagne==True : #enlève le joueur qui a gagné
+          print(str(Sensei.alivePlayers[i]+1)+ " a gagné !")
+          del Sensei.alivePlayers[i]
+  print("La partie est terminée, le perdant est le joueur " + str(Sensei.alivePlayers[0]+1))
+    
+
+  
  
 if __name__ == '__main__':
-    routine()
+  initialisation()
+  
 
 
