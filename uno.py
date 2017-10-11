@@ -114,16 +114,16 @@ class Mj():
         self.player[called].pioche()
         endTurn=False
       elif self.table[0]=="+2" and self.battle==True :
-        self.chainMemory+=2
+        
         endTurn=True
-        for i in range(int(self.chainMemory/2)) :
+        for i in range(int(self.chainMemory)) :
           self.player[called].pioche()
         self.chainMemory=0
         
       elif self.table[0]=="+4" and self.battle==True:
-        self.chainMemory+=4
+        
         endTurn=True
-        for i in range(int(self.chainMemory/2)) :
+        for i in range(int(self.chainMemory)) :
           self.player[called].pioche()
         self.chainMemory=0
       self.battle=False
