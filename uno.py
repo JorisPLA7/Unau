@@ -1,3 +1,5 @@
+#coding : utf-8
+
 from random import *
 
 """
@@ -172,7 +174,7 @@ class Player():
         
     def play(self):
       print(self.main)
-      indice = input("indice de la carte à jouer  (-1 pour piocher/passer)" :)
+      indice = input("indice de la carte à jouer  (-1 pour piocher/passer) :")
       ActionCorrecte=False
       while ActionCorrecte==False:
         try :
