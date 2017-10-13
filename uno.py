@@ -11,7 +11,9 @@ def initialisation():
   print("Bienvenue !")
   global deck
   deck=[["+4",0] , ["+4",0]  , ["+4",0]  , ["+4",0]  , ["change",0] , ["change",0] , ["change",0] , ["change",0] ]
-  val=[0,1,2,3,4,5,6,7,8,9,"+2",1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,"+2","sens","sens","no","no"]
+  val=[0,1,2,3,4,5,6,7,8,9,"+2",1,2,3,4,5,6,7,8,9,"+2","sens","sens","no","no"]
+  # jeu alternantif :   val=[0,1,2]#,3,4,5,6,7,8,9,"+2"]#,1,2,3,4,5,6,7,8,9,"+2","sens","sens","no","no"]
+
   colors=["j","v","b","r"]
   for i in range(len(val)):
       for j in range(len(colors)):
@@ -199,7 +201,7 @@ class Player():
     def pioche(self):
       print("Joueur {} pioche !".format(self.player+True ))
       if len(deck)==0 :
-        routine.recyclage()
+        recyclage()
         print("Reconstruction du deck...")
       self.main.append(deck.pop())
 
@@ -215,16 +217,8 @@ class Player():
       self.gagne=True
 
 def routine():
-  Sensei=Mj(2)
-
-
-  def recyclage() :
-    deck = Sensei.bin
-    shuffle(deck)
-    Sensei.bin=[]
-    for i in len(deck): # on redonne aux cartes qui ont changé de couleur le noir d'origine
-      if deck[i][0] == "change" or deck[i][0] == "+4" :
-        deck[i][1] = 0
+  global Sensei
+  Sensei=Mj(2) #nombre de joueurs
 
   while len(Sensei.alivePlayers)!=1 :
     Sensei.ParentDeJeu()
@@ -235,7 +229,17 @@ def routine():
           del Sensei.alivePlayers[i]
   print("La partie est terminée, le perdant est le joueur " + str(Sensei.alivePlayers[0]+1))
 
-
+def recyclage() :
+  global deck
+  deck = list(Sensei.bin)
+  #print("len bin {}".format(len(Sensei.bin)))
+  #print("deck : {}".format(deck))
+  shuffle(deck)
+  Sensei.bin=[]
+  #print("deck apres: {}".format(deck))
+  for i in range(len(deck)): # on redonne aux cartes qui ont changé de couleur le noir d'origine
+    if deck[i][0] == "change" or deck[i][0] == "+4" :
+      deck[i][1] = 0
 
 
 if __name__ == '__main__':
