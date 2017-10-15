@@ -44,8 +44,6 @@ class Mj():
       self.table=deck.pop(0)
 
   def whosNext(self):
-
-
     if self.table[0]=="no":
       if self.sens : return self.alivePlayers[(self.lastPlayer + 2*1)%(len(self.alivePlayers))]
       else : return self.alivePlayers[(self.lastPlayer - 2*1 + len(self.alivePlayers))%(len(self.alivePlayers))]
@@ -163,12 +161,9 @@ class Mj():
     return endTurn, called
 
 
-
-
-
-
-
 class Player():
+    '''Classe joueur, qui permet à un ultilisateur physique de donner des instructions
+    '''
     def __init__(self, number):
       self.player=number
       self.main= [deck.pop(0) for i in range(7)]
