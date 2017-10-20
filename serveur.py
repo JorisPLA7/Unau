@@ -1,25 +1,10 @@
 # -∗- coding: utf-8 -∗-
 #toute l'initiallisation des lib est en try except pour pouvoir dépister instantanément d'éventuels dépendances non satisfaites
-try :
-    import socket
-    print("Bibliothèque socket importée avec succès !")
-except:
-    print("Impossible d'importer la bibliothèque socket !")
-try :
-    import threading
-    print("Bibliothèque threading importée avec succès !")
-except:
-    print("Impossible d'importer la bibliothèque threading !")
-try :
-    import time
-    print("Bibliothèque time importée avec succès !")
-except:
-    print("Impossible d'importer la bibliothèque time !")
-try :
-    from threading import Thread
-    print("Bibliothèque threading.Thread importée avec succès !")
-except:
-    print("Impossible d'importer la bibliothèque threading.Thread !")
+
+import socket
+import threading
+import time
+from threading import Thread
 
 
 global Host, Port, broadcast
@@ -136,14 +121,33 @@ class Guest(threading.Thread) :
         while self.DoComm == 1:
             if len(self.Message) >= 1: #si un message a été ajouté depuis la dernière fois
                 data = self.Message.pop()
-                self.Client.sendall(data.encode()) #sendall permet de s'assurer que le message arrive EN ENTIER
+                dataP = pickle.dumps(data)
+                print('pickled!')
+
+                Sock.sendall(dataP) #envoi du message ss forme de bytecode
+                print('data sent!')
+                #conn, addr = s.accept()
+
+            try :
+                data = self.Client.recv(9000)
+                print('received!')
+                dataP = pickle.loads(data)
+                print('unpickled!')
+                self.__RequestTreatment(dataP) #on sous-traite les données pour reserver cette fonction aux seuls communications
+            except:
+                pass
+                #print("y'a un pb bb") #en cas de time-out on passe simplement à la suite
+                '''
+            if len(self.Message) >= 1: #si un message a été ajouté depuis la dernière fois
+                data = self.Message.pop()
+                self.Client.sendall(str(data).encode()) #sendall permet de s'assurer que le message arrive EN ENTIER
             try:
-                data = self.Client.recv(1024).decode() #le thread reste à l'écoute d'un message pendant la durée renseignée par Timeout
+                data = dict(self.Client.recv(9000).decode()) #le thread reste à l'écoute d'un message pendant la durée renseignée par Timeout
                 self.__RequestTreatment(data) #on sous-traite les données pour reserver cette fonction aux seuls communications
             except:
-                #en cas de time-out on passe simplement à la suite
+                #print("y'a un pb bb")#en cas de time-out on refait la boucle
                 pass
-
+                '''
     def WhoIsIt(self):
         '''Fonction retournant le Pseudonyme rensigné par l'utilisateur lors de la phase d'Identification.
         Par Joris Placette

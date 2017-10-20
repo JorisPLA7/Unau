@@ -1,21 +1,8 @@
 # -∗- coding: utf-8 -∗-
-
-
-try :
-    import socket
-    print("Bibliothèque socket importée avec succès !")
-except:
-    print("Impossible d'importer la bibliothèque socket !")
-try :
-    import threading
-    print("Bibliothèque threading importée avec succès !")
-except:
-    print("Impossible d'importer la bibliothèque threading !")
-try :
-    import time
-    print("Bibliothèque time importée avec succès !")
-except:
-    print("Impossible d'importer la bibliothèque time !")
+import socket
+import threading
+import time
+import pickle
 
 class NetThread (threading.Thread) :
     '''Classe-Thread chargé de l'envoi & récéption de donnée via le socket une fois le client identifié.
@@ -39,14 +26,24 @@ class NetThread (threading.Thread) :
         while 1:
             if len(self.Message) >= 1: #si un message a été ajouté depuis la dernière fois
                 data = self.Message.pop()
-                Sock.sendall(data.encode()) #envoi du message ss forme de bytecode
-
+                dataP = pickle.dumps(data)
+                print('pickled!')
+                Sock.sendall(dataP) #envoi du message ss forme de bytecode
+                print('data sent!')
+                #conn, addr = s.accept()
 
             try :
-                data = Sock.recv(1024).decode() #attente d'une reponse pdt 2sec en cas de timeout retourne une erreur, d'ou le try & except
+                data = Sock.recv(9000)
+                print('received!')
+                dataP = pickle.loads(data)
+                print('unpickled!')
+                data = dataP #attente d'une reponse pdt 2sec en cas de timeout retourne une erreur, d'ou le try & except
+
                 self.thereIsSomeNewData = True
+
             except:
-                pass #en cas de time-out on passe simplement à la suite
+                pass
+                #print("y'a un pb bb") #en cas de time-out on passe simplement à la suite
             if self.thereIsSomeNewData:
                 self.__RequestTreatment(data)#J'ai sorti la fonction du try; pour rendre le débuggage possible
             self.thereIsSomeNewData = False
@@ -176,7 +173,7 @@ def login():
         print("Vous êtes connecté en tant que {}".format(MyNet.WhoAmI()))
         while True:
             Typed = input(">")
-            MyNet.Transmit(Typed)
+            MyNet.Transmit({'test':45, 'text':Typed})
 
 if __name__ == '__main__':
     login() # ce fichier sera peut-être une librairie, il faut donc empêcher l'inclusion du login si appelée par un autre fichier.
