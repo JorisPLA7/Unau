@@ -22,7 +22,9 @@ def initialisation():
   routine()
 
 class Mj():
-  def __init__(self, nombreJoueurs=2, ):
+  ''' maitre du jeu , objet manipulant les 'cartes' & les permissions
+  '''
+  def __init__(self, nombreJoueurs=2):
     self.player = []
     self.alivePlayers= [i for i in range(nombreJoueurs)]
     self.sens = True
