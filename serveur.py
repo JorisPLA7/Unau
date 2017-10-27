@@ -4,6 +4,7 @@
 import socket
 import threading
 import time
+import pickle
 from threading import Thread
 
 
@@ -124,7 +125,7 @@ class Guest(threading.Thread) :
                 dataP = pickle.dumps(data)
                 print('pickled!')
 
-                Sock.sendall(dataP) #envoi du message ss forme de bytecode
+                self.Client.sendall(dataP) #envoi du message ss forme de bytecode
                 print('data sent!')
                 #conn, addr = s.accept()
 
