@@ -1,10 +1,7 @@
 from lib.serveur import *
 global broadcast
-<<<<<<< HEAD
 broadcast = True #ATTENTION DEF LE BROADCAST à VRAI OU FAUX EST INDISPENSABLE POUR LE MOMENT
-=======
-broadcast = True #ATTENTION DEF LE BROADCAST à VRAI OU FAUX EST INDISPENSABLE POUR LE MOMENT 
->>>>>>> origin/master
+
 
 def SimpleHost():
     '''Fct de démonstration et de test.
