@@ -1,4 +1,5 @@
 from lib.client import *
+import UnoPOO
 
 def login():
     '''Fct de démonstration et de test.
@@ -14,12 +15,17 @@ def login():
     global MyNet
     MyNet = Net(Host, Port , Nickname, Pass)
 
+    monJeu = UnoPOO.Jeu(True)
+
     MyNet.Identify() #séquence d'identification
     if MyNet.Connected == True :
         print("Vous êtes connecté en tant que {}".format(MyNet.WhoAmI()))
         while True:
             Typed = input(">")
-            MyNet.Transmit({'test':45, 'text':Typed})
+            try :
+                exec(Typed) #sorte d'invite de commande en cas de lancement interactif sur le serveur
+            except:
+                MyNet.Transmit({'test': monJeu , 'text':Typed})
 
 if __name__ == '__main__':
     login() # ce fichier sera peut-être une librairie, il faut donc empêcher l'inclusion du login si appelée par un autre fichier.

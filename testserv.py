@@ -2,7 +2,6 @@ from lib.serveur import *
 global broadcast
 broadcast = True #ATTENTION DEF LE BROADCAST à VRAI OU FAUX EST INDISPENSABLE POUR LE MOMENT
 
-
 def SimpleHost():
     '''Fct de démonstration et de test.
     c'est un cadeau pour toi Samuel <3 ^^
