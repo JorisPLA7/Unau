@@ -2,20 +2,15 @@ from lib.client import *
 
 def login():
     '''Fct de démonstration et de test.
-    c'est un cadeau pour toi Arth <3 ^^
-
     Par Joris Placette
     '''
-    Host = "0"
-    if Host == "0":
-            Host ="127.0.0.1"
+    Host ="127.0.0.1"
     Port = 8082
     print("Saisir 'q' pour obtenir un terminal de commande")
     Nickname = str(input("saisir un pseudo (inferieur à 10 caractères):  "))
     if Nickname == 'q':
         debug()
     Pass = "lol ;')"
-
     global MyNet
     MyNet = Net(Host, Port , Nickname, Pass)
 

@@ -2,10 +2,6 @@
 
 from random import *
 
-"""
-
-"""
-
 def initialisation():
   #sauf si tu trouves une autre méthode, je suis obligé de passer le deck en global pour qu'il soit utilisable par les joueurs
   print("Bienvenue !")
@@ -167,7 +163,7 @@ class Player():
     '''Classe joueur, qui permet à un ultilisateur physique de donner des instructions
     '''
     def __init__(self, number):
-      self.player=number
+      self.playerNumber=number
       self.main= [deck.pop(0) for i in range(7)]
       self.gagne=False
 
@@ -196,7 +192,7 @@ class Player():
 
 
     def pioche(self):
-      print("Joueur {} pioche !".format(self.player+True ))
+      print("Joueur {} pioche !".format(self.playerNumber+True ))
       if len(deck)==0 :
         recyclage()
         print("Reconstruction du deck...")
