@@ -5,7 +5,6 @@ import socket
 import threading
 import time
 import pickle
-import
 from threading import Thread
 
 
@@ -129,20 +128,23 @@ class Guest(threading.Thread) :
                 self.Client.sendall(dataP) #envoi du message ss forme de bytecode
                 print('data sent!')
                 #conn, addr = s.accept()
-
+            self.toggler = 0
             try :
                 data = self.Client.recv(9000)
                 print('received!')
                 dataP = pickle.loads(data)
                 print('unpickled!')
-                #print(type(dataP), "-------------------- serv")
-                #print(type(dataP['test']), "-------------------- test")
 
-                self.__RequestTreatment(dataP) #on sous-traite les données pour reserver cette fonction aux seuls communications
+                print(type(dataP), "-------------------- serv")
+                print(type(dataP['test']), "-------------------- test")
+                self.toggler = 1
+                 #on sous-traite les données pour reserver cette fonction aux seuls communications
             except:
                 pass
-                #print("y'a un pb bb") #en cas de time-out on passe simplement à la suite
-                '''
+            if self.toggler : self.__RequestTreatment(dataP)
+
+            #print("y'a un pb bb") #en cas de time-out on passe simplement à la suite
+            '''
             if len(self.Message) >= 1: #si un message a été ajouté depuis la dernière fois
                 data = self.Message.pop()
                 self.Client.sendall(str(data).encode()) #sendall permet de s'assurer que le message arrive EN ENTIER
@@ -210,20 +212,11 @@ def Flow(clientID, clientAddress, clientNick, data):
     print(result)
 
     if broadcast == True:
-        for i in range(0,len(MyClient)+1):
+        for i in range(0,len(MyClient)):
             MyClient[i].Transmit(result)
 
-    if isinstance(data, str) == True:
-        a = verificationPseudo(data)
-        print(a)
-        if a == False :
-            userAdd(data)
-
-    elif isinstance(data, int) == True :
-        requestMessage(data,clientNick)
-
-    elif isinstance(data, list) == True :
-        writeMessage(data[1],data[0])
+    monjeu = data['test']
+    monjeu.launch()
 
 def SimpleHost():
     '''Fct de démonstration et de test.
