@@ -45,7 +45,7 @@ class Jeu :
         '''
         cls.nextPlayer=(cls.active+cls.sens*nb)%cls.nb_joueurs
         
-        print("le joueur suivant sera donc : {} {}".format(cls.player[cls.nextPlayer].nom,cls.player[cls.nextPlayer].num))
+        #print("le joueur suivant sera donc : {} {}".format(cls.player[cls.nextPlayer].nom,cls.player[cls.nextPlayer].num))
         
 
     setNextPlayer=classmethod(setNextPlayer)
@@ -382,11 +382,15 @@ class Special(Carte):
     '''carte de nous
     '''
     def __init__(self, liste):
-        liste[1]="SpecialPower"
+        liste[0]="SpecialPower"
         Carte.__init__(self,liste)
 
     def compatibTest(self, carte):
-        return True
+        if type(carte.val)==int:
+            if carte.val<=4 :
+                return True
+          
+        return False
 
 class Salamandre(Carte):
     ''' equivalent carte +2
@@ -399,7 +403,7 @@ class Salamandre(Carte):
 
         def piocheur(cls):
             print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
-            nextPlayer=(Jeu.nextPlayer + Jeu.sens)%cls.nb_joueurs
+            nextPlayer=(Jeu.active + Jeu.sens)%cls.nb_joueurs
 
             try :
 
