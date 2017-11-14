@@ -75,7 +75,7 @@ class Jeu :
     autorisation=classmethod(autorisation)
 
     
-    def unpack(cls, obj): #pour sauver les données, écrire a.pack(a)
+    def unpack(cls, obj): #pour récupérer les données, écrire a.unpack(a)
       cls.data=list(obj.data)
       [cls.active,
           cls.nextPlayer,
@@ -346,7 +346,13 @@ class Joueur(Jeu):
         canPlay=(canPlay and Jeu.autorisation(carte) )#les modificateurs de jeu en cours
         canPlay=(canPlay and carte.compatibTest(Jeu.table) )#la carte elle-même
         for i in self.restrictions : #les diverses restrictions supplémentaires du joueur
-            canPlay=canPlay and i(carte)
+            if i(carte)=="ByPass" : #"code spécial" pour éviter toutes les restricions
+              canPlay=True
+              return canPlay
+            
+            else :
+              canPlay=canPlay and i(carte)
+        
         return canPlay
 
 
@@ -457,9 +463,6 @@ class Esprit(Carte):
         return changementSens
 
 
-'''
-while True:
-    try:
-        exec(input('>>>'))
-    except:
-        print("y'a un pb :/")'''
+if __name__=='__main__':
+    a=Jeu(True)
+    a.launch()
