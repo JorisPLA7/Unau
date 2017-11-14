@@ -19,6 +19,7 @@ class NetThread (threading.Thread) :
         self.Message = []
         self.thereIsSomeNewData = False # désolé pour la longueur du nom de cette variable je n'ai pas trouvé mieux
     def __RequestTreatment(self, Request):
+
         Flow(Request) #extraction des données pour qu'elles soient récupérées par Arthur
 
     def run(self):
@@ -37,6 +38,7 @@ class NetThread (threading.Thread) :
                 print('received!')
                 dataP = pickle.loads(data)
                 print('unpickled!')
+                print(type(dataP))
                 data = dataP #attente d'une reponse pdt 2sec en cas de timeout retourne une erreur, d'ou le try & except
 
                 self.thereIsSomeNewData = True
@@ -132,6 +134,7 @@ def Flow(Request):
     Par Joris Placette
     '''
     print(Request)
+
 
     # variableQuiVautCeQueSamuelAEnvoye = Request
     # tu peux convertir fastoche avec int(Request) ou tuple(Request) par exemple
