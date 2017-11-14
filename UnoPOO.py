@@ -3,13 +3,10 @@ import sys
 
 
 class Jeu :
-    def __init__(self, main=False, nbPl =4 ):
+    
 
 
-        if main : Jeu.classInit(nbPl)
-
-
-
+    #----------------------------------------------Classmethods----------------------------------------------------------
 
     def getUsernames(cls): #voir avec le serveur
         pass
@@ -19,6 +16,7 @@ class Jeu :
         """ Fonction qui initialise tout le jeu, le programme peut tourner sans mais il faut alors créer les instances à la main et certaines méthodes ne sont pas disponibles"""
 
         cls.active=0 # Id du joueur actif
+        cls.nextPlayer=1
         cls.bin=[] #défausse
         cls.deck=Deck # le deck est un objet aussi
         cls.deck.__init__(cls.deck) # pas nécessaire mais il y avait des bugs (je retirerai quand tout sera bien fini)
@@ -30,7 +28,7 @@ class Jeu :
         cls.nb_joueurs=nombreJoueurs
         cls.sens=1
         cls.modificateurs_de_jeu=[]
-        cls.toggleNext=False #si le joueur suivant a déja été determiné , alors toogleNext = 1 et la fct setNextPlayer n'est pas appelée de nouveau
+        cls.toggleNext=False #si le joueur suivant a déja été determiné , alors toogleNext = True et la fct setNextPlayer n'est pas appelée de nouveau
         # on le RAZ à chaque nv joueur
     classInit=classmethod(classInit) #diffuse cette méthode sur l'ensemble des objets de cette classe ainsi que les sous-classes (n'importe quelle instance (même une carte) peut donc modifier les propriétés du Jeu)
 
@@ -47,6 +45,7 @@ class Jeu :
         NON TESTE
         '''
         cls.nextPlayer=(cls.active+cls.sens*nb)%cls.nb_joueurs
+        print("le joueur suivant sera donc : {} {}".format(cls.player[cls.nextPlayer].nom,cls.player[cls.nextPlayer].num))
         cls.toggleNext=True
 
     setNextPlayer=classmethod(setNextPlayer)
@@ -59,7 +58,7 @@ class Jeu :
 
     def autorisation(cls, carte):
         can_play=True
-        for i in modificateurs_de_jeu :
+        for i in cls.modificateurs_de_jeu :
             can_play= can_play and i[0]()
         return can_play
 
@@ -71,13 +70,9 @@ class Jeu :
 
     autorisation=classmethod(autorisation)
 
-    def describe(cls, object): # si tu es perdu Joris
-        print(object.caracteristics())
-    describe=classmethod(describe)
+    
 
-    def caracteristics(self) : #sera utilisé par toutes les instances pour le transfert de données notamment
-        dico={}
-        return dico
+    
 
     def getActive(cls): #fonction pas nécessaire mais utile au déboguage
         try :
@@ -86,7 +81,45 @@ class Jeu :
             return -1
     getActive=classmethod(getActive)
 
+    #----------------------------------------------Instance--------------------------------------------------------------
+    def __init__(self, main=False, nbPl =4 ):
 
+        self.autoAsk=False
+        if main : Jeu.classInit(nbPl)
+        
+    def caracteristics(self) : 
+        dico={}
+        return dico
+    
+    def describe(self): # si tu es perdu Joris
+        dico=self.caracteristics()
+        
+        print(self.caracteristics())
+        
+    def launch(self):
+        self.autoAsk=True
+        self.routine()
+        
+    def routine(self):
+        while self.autoAsk == True :
+            
+            request=input("Appuyez sur Entrée ou entrez une commande :")
+            if len(request)!=0 :
+                try :
+                    exec(request)
+                except :
+                    print("Erreur.")
+            else :
+                self.ask()
+                
+    
+    def ask(self):
+        self.setNextPlayer()
+        self.player[self.active].answer()            
+        self.toggleNext=False
+        self.active=self.nextPlayer
+        
+        
 
 class Deck(Jeu):
     def __init__(self):
@@ -118,6 +151,9 @@ class Deck(Jeu):
 
         if liste[0] == "Esprit" :
             return Esprit(liste)
+            
+        else :
+            return exec("{}(liste)".format(liste[0])) # dans le cas d'un apport extérieur d'une nouvelle classe
 
 
     def reset(self):
@@ -133,7 +169,9 @@ class Deck(Jeu):
             self.reset()
         return carte
 
-
+    def caracteristics(self) : 
+        dico={}
+        return dico
 
 class Carte(Jeu):
     def __init__(self,liste):
@@ -156,22 +194,26 @@ class Carte(Jeu):
         self.owner=parent
 
     def poseEffect(self):
-        def noEffect() :
+        def noEffect(cls) :
             pass
 
         return noEffect
 
     def coveredEffect(self):
-        def noEffect() :
+        def noEffect(cls) :
             pass
 
         return noEffect
 
     def compatibTest(self, carte):
-        if not (self.val ==carte.val or self.type==carte.type) :
+        if not (self.val ==carte.val or self.typ==carte.typ) :
             return False
         return True
-
+    
+    def caracteristics(self) : 
+        dico={"carte":self.id, "owner":self.owner}
+        return dico
+        
 class Joueur(Jeu):
     hand=[]
     def __init__(self,playNumb,Username='Joueur'):
@@ -182,7 +224,55 @@ class Joueur(Jeu):
         self.StartMethodList=[]
         self.EndMethodList=[]
         self.restrictions=[]
-
+    
+    
+    def answer(self):
+        input("C'est à {} {} de jouer !".format(self.nom,self.num))
+        print("La carte posée est | ~ {} de {} ~ |".format(Jeu.table.val,Jeu.table.typ))
+        print("Voici vos cartes : ")
+        for i in range(len(self.hand)) :
+            print("| {} : ~ {} de {} ~ |".format(i,self.hand[i].val,self.hand[i].typ))
+        print()
+        if not self.peutJouer() :
+            
+            self.pioche()
+            print ("Vous piochez : | {} : ~ {} de {} ~ |".format(len(hand)-1,self.hand[len(hand)-1].val,self.hand[len(hand)-1].typ))
+            
+        if not self.peutJouer() :
+            self.endTurn()
+        else :
+            indice=input("Quelle carte poser ? ")
+            try :
+                indice=int(indice)
+            except :
+                while type(indice)!=int :
+                    indice=input("Il faudrait songer à entrer le numéro correspondant : ")
+                    try :
+                        indice=int(indice)
+                    except :
+                        pass
+            
+            while(indice<0 or indice>=len(self.hand)) or self.play(indice)==False :
+                indice=input("Vous ne pouvez pas jouer ça. Essayez encore : ")
+                try :
+                    indice=int(indice)
+                except :
+                    while type(indice)!=int :
+                        indice=input("Il faudrait songer à entrer le numéro correspondant : ")
+                        try :
+                            indice=int(indice)
+                        except :
+                            pass
+        self.endTurn()
+    
+    def endTurn(self):
+        if Jeu.nextPlayer != self.num :
+            print("C'est la fin de votre tour.")
+        print()
+        self.clearLists()
+        
+        
+        
     def pioche(self) :
         self.hand.append(Jeu.pioche())
 
@@ -199,16 +289,21 @@ class Joueur(Jeu):
                     Jeu.i()
                 else :
                     i(self)
-            self.clearLists()
+            
         return effectuer_actions
 
     def clearLists(self):
         self.StartMethodList=[]
         self.EndMethodList=[]
         self.restrictions=[]
-
-
-    def verify(self, carte): #prends en compte les restricions imposées par...
+    
+    def peutJouer(self): #renvoie vraie si la main du joueur contient au moins une carte jouable
+        Canplay=False
+        for i in self.hand:
+            Canplay = (Canplay or self.verify(i))
+        return Canplay
+        
+    def verify(self, carte): #détermine si une carte est jouable en prenant en compte les restricions imposées par...
 
         canPlay=True
         canPlay=(canPlay and Jeu.autorisation(carte) )#les modificateurs de jeu en cours
@@ -219,17 +314,24 @@ class Joueur(Jeu):
 
 
     def play(self, cardId):
-        if verify(self.hand[cardId]) :
+        if cardId<0 :
+            cardId=0
+        if cardId>=len(self.hand) :
+            cardId=len(self.hand)-1
+        if self.verify(self.hand[cardId]) :
             self.pose(cardId)
+            return True
         else :
-            print ("Action impossible")
+            return False
 
     @turnEffects
     def pose(self, cardId):
         carte = self.hand.pop(cardId)
         carte.pose(self.num)
 
-
+    def caracteristics(self) : 
+        dico={"Joueur":[self.num,self.nom], "nombre de carte":len(self.hand)}
+        return dico
 
 
 
@@ -254,7 +356,7 @@ class Salamandre(Carte):
 
         def piocheur(cls):
             print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
-            nextPlayer=(Jeu.active + Jeu.sens)%cls.nb_joueurs
+            nextPlayer=(Jeu.nextPlayer + Jeu.sens)%cls.nb_joueurs
 
             try :
 
@@ -281,7 +383,7 @@ class Salamandre(Carte):
                 def restriction(self, carte):
                     if Jeu.table.val!=carte.val :
                         return False
-                cls.player[nextPlayer].restrictions.append(restriction)
+                Jeu.player[nextPlayer].restrictions.append(restriction)
 
 
 
@@ -312,7 +414,7 @@ class Esprit(Carte):
 
     def poseEffect(self):
         def changementSens(cls):
-            Jeu.sens = Jeu.sens*-1
+            Jeu.sens = Jeu.sens*(-1)
 
         return changementSens
 
