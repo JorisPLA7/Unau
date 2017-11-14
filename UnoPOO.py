@@ -160,7 +160,7 @@ class Jeu :
 
 class Deck(Jeu):
     def __init__(self):
-        deckInit=[["sp",0] , ["sp",0]  , ["sp",0]  , ["sp",0]  , ["sp+",0] , ["sp+",0] , ["sp+",0] , ["sp+",0], ["sp++",0] , ["sp+",0] , ["sp++",0] , ["sp++",0] ]
+        deckInit=[["Cataclysme","Pouvoir"] , ["Cataclysme","Pouvoir"]  , ["Benediction","Pouvoir"] , ["Benediction","Pouvoir"] , ["Benediction","Pouvoir"] , ["Benediction","Pouvoir"], ["Tempete","Pouvoir"] , ["Tempete","Pouvoir"] , ["Tempete","Pouvoir"] , ["Tempete","Pouvoir"] ]
         val=[0,1,2,3,4,5,6,7,8,9,"Salamandre",1,2,3,4,5,6,7,8,9,"Salamandre","Dragon","Dragon","Esprit","Esprit"]
         colors=["Bambous","Cascade","Braises","Lumière"]
         for i in range(len(val)):
@@ -174,9 +174,7 @@ class Deck(Jeu):
         shuffle(self.deckActive)
 
     def createCard(liste):
-        if liste[1] == 0 :
-            return Special(liste)
-
+        
         if type(liste[0]) == int :
             return Carte(liste)
 
@@ -189,9 +187,23 @@ class Deck(Jeu):
         if liste[0] == "Esprit" :
             return Esprit(liste)
             
-        else :
-            return exec("{}(liste)".format(liste[0])) # dans le cas d'un apport extérieur d'une nouvelle classe
-
+        if liste[0] == "Cataclysme" :
+            return Cataclysme(liste)
+        
+        if liste[0] == "Benediction" :
+            return Benediction(liste)
+            
+        if liste[0] == "Tempete" :
+            return Tempete(liste)
+        
+        """      
+                else :
+                    carte=None
+                    exec("carte = {}([0,0])".format("Cataclysme") )# dans le cas d'un apport d'une nouvelle classe
+                    print(carte)
+                    return carte
+        """     
+        #NE FONCTIONNE QUE DANS LA SHELL
 
     def reset(self):
         cartes=Jeu.bin
@@ -222,7 +234,8 @@ class Carte(Jeu):
 
     def pose(self, parent=Jeu.getActive()):
         Jeu.pose(self)
-        Jeu.player[parent].EndMethodList.append(self.poseEffect())
+        for i in self.poseEffect():
+            Jeu.player[parent].PoseMethodList.append(i)
         self.setOwner(parent)
 
 
@@ -234,7 +247,7 @@ class Carte(Jeu):
         def noEffect(cls) :
             pass
 
-        return noEffect
+        return [noEffect]
 
     def coveredEffect(self):
         def noEffect(cls) :
@@ -259,12 +272,20 @@ class Joueur(Jeu):
         self.hand=[Jeu.pioche() for i in range(7)]
 
         self.StartMethodList=[]
-        self.EndMethodList=[]
+        self.PoseMethodList=[]
         self.restrictions=[]
     
     
     def answer(self):
         input("C'est à {} {} de jouer !".format(self.nom,self.num))
+        
+        for i in self.StartMethodList : #effets de début de tour
+            if type(i) == classmethod :
+                self.i(self)
+            else :
+                i(self)
+                
+                
         print("La carte posée est | ~ {} de {} ~ |".format(Jeu.table.val,Jeu.table.typ))
         print("Voici vos cartes : ")
         for i in range(len(self.hand)) :
@@ -300,7 +321,7 @@ class Joueur(Jeu):
                             indice=int(indice)
                         except :
                             pass
-        self.endTurn()
+            self.endTurn()
     
     def endTurn(self):
         if Jeu.nextPlayer != self.num :
@@ -315,15 +336,11 @@ class Joueur(Jeu):
 
     def turnEffects(fonction):
         def effectuer_actions(self, arg2):
-            for i in self.StartMethodList :
-                if type(i) == classmethod :
-                    i(self)
-                else :
-                    i(self)
+           
             fonction(self, arg2)
-            for i in self.EndMethodList :
+            for i in self.PoseMethodList :
                 if type(i) == classmethod :
-                    Jeu.i()
+                    self.i(self)
                 else :
                     i(self)
             
@@ -331,7 +348,7 @@ class Joueur(Jeu):
 
     def clearLists(self):
         self.StartMethodList=[]
-        self.EndMethodList=[]
+        self.PoseMethodList=[]
         self.restrictions=[]
     
     def peutJouer(self): #renvoie vraie si la main du joueur contient au moins une carte jouable
@@ -382,15 +399,15 @@ class Special(Carte):
     '''carte de nous
     '''
     def __init__(self, liste):
-        liste[0]="SpecialPower"
         Carte.__init__(self,liste)
-
-    def compatibTest(self, carte):
-        if type(carte.val)==int:
-            if carte.val<=4 :
-                return True
-          
-        return False
+    
+    def pose(self, parent=Jeu.getActive()):
+        self.typ=Jeu.table.typ
+        Jeu.pose(self)
+        for i in self.poseEffect():
+            Jeu.player[parent].PoseMethodList.append(i)
+        self.setOwner(parent)
+    
 
 class Salamandre(Carte):
     ''' equivalent carte +2
@@ -436,7 +453,7 @@ class Salamandre(Carte):
 
 
 
-        return piocheur
+        return [piocheur]
 
 
 
@@ -450,7 +467,7 @@ class Dragon(Carte):
         def saut(cls):
             Jeu.setNextPlayer(2)
 
-        return saut
+        return [saut]
 
 
 class Esprit(Carte):
@@ -464,9 +481,48 @@ class Esprit(Carte):
             Jeu.sens = Jeu.sens*(-1)
             Jeu.setNextPlayer(1)
 
-        return changementSens
+        return [changementSens]
 
+class Cataclysme(Special):
+    def __init__(self, liste):
+        Carte.__init__(self,liste)
+    
+    def compatibTest(self, carte):
+        if type(carte.val)==str and str(carte.val)!="Dragon":
+            return False
+        elif type(carte.val)==str and str(carte.val)=="Dragon":
+            return True
+        elif carte.val==0:
+            return True
+        return False
+        
 
+class Tempete (Special):
+    def __init__(self, liste):
+        liste[0]="Tempête"
+        Carte.__init__(self,liste)
+    
+    def compatibTest(self, carte):
+        if type(carte.val)==str and str(carte.val)!="Esprit":
+            return False
+        elif type(carte.val)==str and str(carte.val)=="Esprit":
+            return True
+        elif carte.val<5:
+            return True
+        return False
+        
+class Benediction (Special):
+    def __init__(self, liste):
+        liste[0]="Bénédiction"
+        Carte.__init__(self,liste)
+    
+    def compatibTest(self, carte):
+        if type(carte.val)==str:
+            return False
+        elif carte.val>7:
+            return True
+        return False
+        
 if __name__=='__main__':
     a=Jeu(True)
     a.launch()
