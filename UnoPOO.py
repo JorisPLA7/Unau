@@ -28,8 +28,7 @@ class Jeu :
         cls.nb_joueurs=nombreJoueurs
         cls.sens=1
         cls.modificateurs_de_jeu=[]
-        cls.toggleNext=False #si le joueur suivant a déja été determiné , alors toogleNext = True et la fct setNextPlayer n'est pas appelée de nouveau
-        # on le RAZ à chaque nv joueur
+        
     classInit=classmethod(classInit) #diffuse cette méthode sur l'ensemble des objets de cette classe ainsi que les sous-classes (n'importe quelle instance (même une carte) peut donc modifier les propriétés du Jeu)
 
     def pioche(cls):
@@ -45,11 +44,16 @@ class Jeu :
         NON TESTE
         '''
         cls.nextPlayer=(cls.active+cls.sens*nb)%cls.nb_joueurs
+        
         print("le joueur suivant sera donc : {} {}".format(cls.player[cls.nextPlayer].nom,cls.player[cls.nextPlayer].num))
-        cls.toggleNext=True
+        
 
     setNextPlayer=classmethod(setNextPlayer)
-
+    
+    def setActive(cls):
+        cls.active=cls.nextPlayer
+    setActive=classmethod(setActive)  
+      
     def pose(cls,carte):
         cls.bin.append(cls.table)
         cls.table=carte
@@ -114,10 +118,12 @@ class Jeu :
                 
     
     def ask(self):
-        self.setNextPlayer()
+        
+        self.setNextPlayer(1)
         self.player[self.active].answer()            
-        self.toggleNext=False
-        self.active=self.nextPlayer
+        
+        self.setActive()
+        
         
         
 
@@ -236,7 +242,7 @@ class Joueur(Jeu):
         if not self.peutJouer() :
             
             self.pioche()
-            print ("Vous piochez : | {} : ~ {} de {} ~ |".format(len(hand)-1,self.hand[len(hand)-1].val,self.hand[len(hand)-1].typ))
+            print ("Vous piochez : | {} : ~ {} de {} ~ |".format(len(self.hand)-1,self.hand[len(self.hand)-1].val,self.hand[len(self.hand)-1].typ))
             
         if not self.peutJouer() :
             self.endTurn()
@@ -415,6 +421,7 @@ class Esprit(Carte):
     def poseEffect(self):
         def changementSens(cls):
             Jeu.sens = Jeu.sens*(-1)
+            Jeu.setNextPlayer(1)
 
         return changementSens
 
