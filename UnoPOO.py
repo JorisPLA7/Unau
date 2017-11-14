@@ -75,7 +75,20 @@ class Jeu :
     autorisation=classmethod(autorisation)
 
     
-
+    def unpack(cls, obj): #pour sauver les données, écrire a.pack(a)
+      cls.data=list(obj.data)
+      [cls.active,
+          cls.nextPlayer,
+          cls.bin,
+          cls.table,
+          cls.player,
+          cls.nb_joueurs,
+          cls.sens,
+          cls.modificateurs_de_jeu,
+          cls.autoAsk]=list(cls.data)
+        
+      
+        
     
 
     def getActive(cls): #fonction pas nécessaire mais utile au déboguage
@@ -90,11 +103,27 @@ class Jeu :
 
         self.autoAsk=False
         if main : Jeu.classInit(nbPl)
+        self.pack()
         
-    def caracteristics(self) : 
+    def enregistrer(self) : 
         dico={}
+        dico['data']= [
+          self.active,
+          self.nextPlayer,
+          self.bin,
+          self.table,
+          self.player,
+          self.nb_joueurs,
+          self.sens,
+          self.modificateurs_de_jeu,
+          self.autoAsk
+                ]
         return dico
-    
+        
+    def pack(self):
+      self.data=self.enregistrer()
+      self.data=list(self.data["data"])
+      
     def describe(self): # si tu es perdu Joris
         dico=self.caracteristics()
         
@@ -108,7 +137,9 @@ class Jeu :
         while self.autoAsk == True :
             
             request=input("Appuyez sur Entrée ou entrez une commande :")
-            if len(request)!=0 :
+            if request=="stop":
+              self.autoAsk = False
+            elif len(request)!=0 :
                 try :
                     exec(request)
                 except :
