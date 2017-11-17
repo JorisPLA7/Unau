@@ -38,7 +38,6 @@ class NetThread (threading.Thread) :
                 print('received!')
                 dataP = pickle.loads(data)
                 print('unpickled!')
-                print(type(dataP))
                 data = dataP #attente d'une reponse pdt 2sec en cas de timeout retourne une erreur, d'ou le try & except
 
                 self.thereIsSomeNewData = True
@@ -83,7 +82,9 @@ class Net ():
             print("Connection avec le serveur...")
             Sock.sendall(data)
             print("Identification auprès du serveur...")
-            time.sleep(1) #afin de donner le temps au serv d'être en écoute
+            ClientNumber = Sock.recv(9000)
+            self.ClientNumber = ClientNumber.decode()
+            print("clientNumber  = {}".format(self.ClientNumber))
 
             self.Connected = True #la connexion a été établie, MAJ du status
 
@@ -133,8 +134,8 @@ def Flow(Request):
 
     Par Joris Placette
     '''
-    print(Request)
-
+    a = Request
+    a.receptionPaquet()
 
     # variableQuiVautCeQueSamuelAEnvoye = Request
     # tu peux convertir fastoche avec int(Request) ou tuple(Request) par exemple

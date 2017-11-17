@@ -1,9 +1,11 @@
 from random import *
+#from lib import serveur
+#from lib import client
 import sys
 
 
 class Jeu :
-    
+
 
 
     #----------------------------------------------Classmethods----------------------------------------------------------
@@ -28,7 +30,7 @@ class Jeu :
         cls.nb_joueurs=nombreJoueurs
         cls.sens=1
         cls.modificateurs_de_jeu=[]
-        
+
     classInit=classmethod(classInit) #diffuse cette méthode sur l'ensemble des objets de cette classe ainsi que les sous-classes (n'importe quelle instance (même une carte) peut donc modifier les propriétés du Jeu)
 
     def pioche(cls):
@@ -44,16 +46,16 @@ class Jeu :
         NON TESTE
         '''
         cls.nextPlayer=(cls.active+cls.sens*nb)%cls.nb_joueurs
-        
+
         #print("le joueur suivant sera donc : {} {}".format(cls.player[cls.nextPlayer].nom,cls.player[cls.nextPlayer].num))
-        
+
 
     setNextPlayer=classmethod(setNextPlayer)
-    
+
     def setActive(cls):
         cls.active=cls.nextPlayer
-    setActive=classmethod(setActive)  
-      
+    setActive=classmethod(setActive)
+
     def pose(cls,carte):
         cls.bin.append(cls.table)
         cls.table=carte
@@ -74,7 +76,7 @@ class Jeu :
 
     autorisation=classmethod(autorisation)
 
-    
+
     def unpack(cls, obj): #pour récupérer les données, écrire a.unpack(a)
       cls.data=list(obj.data)
       [cls.active,
@@ -86,10 +88,10 @@ class Jeu :
           cls.sens,
           cls.modificateurs_de_jeu,
           cls.autoAsk]=list(cls.data)
-        
-      
-        
-    
+
+
+
+
 
     def getActive(cls): #fonction pas nécessaire mais utile au déboguage
         try :
@@ -99,13 +101,26 @@ class Jeu :
     getActive=classmethod(getActive)
 
     #----------------------------------------------Instance--------------------------------------------------------------
-    def __init__(self, main=False, nbPl =4 ):
+    def __init__(self, main=False, nbPl =4):
 
         self.autoAsk=False
         if main : Jeu.classInit(nbPl)
-        self.pack()
-        
-    def enregistrer(self) : 
+
+
+    def receptionPaquet(self):
+        self.unpack(self)
+        if self.idJoueurLocal == self.active :
+            self.ask()
+        elif "personne_inconnu" in [self.player[i].nom for i in range(len(self.player))] :
+            for i in range(len(self.player)) :
+                if self.player[i].nom=="personne_inconnu" :
+                player[i].nom=pseudo
+                idJoueurLocal=player[i].num
+                continue
+
+
+
+    def enregistrer(self) :
         dico={}
         dico['data']= [
           self.active,
@@ -119,23 +134,24 @@ class Jeu :
           self.autoAsk
                 ]
         return dico
-        
+
     def pack(self):
       self.data=self.enregistrer()
       self.data=list(self.data["data"])
-      
+      myNet.Transmit(a)
+
     def describe(self): # si tu es perdu Joris
         dico=self.caracteristics()
-        
+
         print(self.caracteristics())
-        
+
     def launch(self):
         self.autoAsk=True
         self.routine()
-        
+
     def routine(self):
         while self.autoAsk == True :
-            
+
             request=input("Appuyez sur Entrée ou entrez une commande :")
             if request=="stop":
               self.autoAsk = False
@@ -146,17 +162,22 @@ class Jeu :
                     print("Erreur.")
             else :
                 self.ask()
-                
-    
+
+
+    def identification(self):
+
+
     def ask(self):
-        
-        self.setNextPlayer(1)
-        self.player[self.active].answer()            
-        
-        self.setActive()
-        
-        
-        
+
+            self.setNextPlayer(1)
+            self.player[self.active].answer()
+
+            self.setActive()
+
+            self.pack()
+
+
+
 
 class Deck(Jeu):
     def __init__(self):
@@ -174,7 +195,7 @@ class Deck(Jeu):
         shuffle(self.deckActive)
 
     def createCard(liste):
-        
+
         if type(liste[0]) == int :
             return Carte(liste)
 
@@ -186,23 +207,23 @@ class Deck(Jeu):
 
         if liste[0] == "Esprit" :
             return Esprit(liste)
-            
+
         if liste[0] == "Cataclysme" :
             return Cataclysme(liste)
-        
+
         if liste[0] == "Benediction" :
             return Benediction(liste)
-            
+
         if liste[0] == "Tempete" :
             return Tempete(liste)
-        
-        """      
+
+        """
                 else :
                     carte=None
                     exec("carte = {}([0,0])".format("Cataclysme") )# dans le cas d'un apport d'une nouvelle classe
                     print(carte)
                     return carte
-        """     
+        """
         #NE FONCTIONNE QUE DANS LA SHELL
 
     def reset(self):
@@ -218,7 +239,7 @@ class Deck(Jeu):
             self.reset()
         return carte
 
-    def caracteristics(self) : 
+    def caracteristics(self) :
         dico={}
         return dico
 
@@ -259,14 +280,14 @@ class Carte(Jeu):
         if not (self.val ==carte.val or self.typ==carte.typ) :
             return False
         return True
-    
-    def caracteristics(self) : 
+
+    def caracteristics(self) :
         dico={"carte":self.id, "owner":self.owner}
         return dico
-        
+
 class Joueur(Jeu):
     hand=[]
-    def __init__(self,playNumb,Username='Joueur'):
+    def __init__(self,playNumb,Username="personne_inconnue"):
         self.num=playNumb
         self.nom=Username
         self.hand=[Jeu.pioche() for i in range(7)]
@@ -274,28 +295,28 @@ class Joueur(Jeu):
         self.StartMethodList=[]
         self.PoseMethodList=[]
         self.restrictions=[]
-    
-    
+
+
     def answer(self):
         input("C'est à {} {} de jouer !".format(self.nom,self.num))
-        
+
         for i in self.StartMethodList : #effets de début de tour
             if type(i) == classmethod :
                 self.i(self)
             else :
                 i(self)
-                
-                
+
+
         print("La carte posée est | ~ {} de {} ~ |".format(Jeu.table.val,Jeu.table.typ))
         print("Voici vos cartes : ")
         for i in range(len(self.hand)) :
             print("| {} : ~ {} de {} ~ |".format(i,self.hand[i].val,self.hand[i].typ))
         print()
         if not self.peutJouer() :
-            
+
             self.pioche()
             print ("Vous piochez : | {} : ~ {} de {} ~ |".format(len(self.hand)-1,self.hand[len(self.hand)-1].val,self.hand[len(self.hand)-1].typ))
-            
+
         if not self.peutJouer() :
             self.endTurn()
         else :
@@ -309,7 +330,7 @@ class Joueur(Jeu):
                         indice=int(indice)
                     except :
                         pass
-            
+
             while(indice<0 or indice>=len(self.hand)) or self.play(indice)==False :
                 indice=input("Vous ne pouvez pas jouer ça. Essayez encore : ")
                 try :
@@ -322,41 +343,41 @@ class Joueur(Jeu):
                         except :
                             pass
             self.endTurn()
-    
+
     def endTurn(self):
         if Jeu.nextPlayer != self.num :
             print("C'est la fin de votre tour.")
         print()
         self.clearLists()
-        
-        
-        
+
+
+
     def pioche(self) :
         self.hand.append(Jeu.pioche())
 
     def turnEffects(fonction):
         def effectuer_actions(self, arg2):
-           
+
             fonction(self, arg2)
             for i in self.PoseMethodList :
                 if type(i) == classmethod :
                     self.i(self)
                 else :
                     i(self)
-            
+
         return effectuer_actions
 
     def clearLists(self):
         self.StartMethodList=[]
         self.PoseMethodList=[]
         self.restrictions=[]
-    
+
     def peutJouer(self): #renvoie vraie si la main du joueur contient au moins une carte jouable
         Canplay=False
         for i in self.hand:
             Canplay = (Canplay or self.verify(i))
         return Canplay
-        
+
     def verify(self, carte): #détermine si une carte est jouable en prenant en compte les restricions imposées par...
 
         canPlay=True
@@ -366,10 +387,10 @@ class Joueur(Jeu):
             if i(carte)=="ByPass" : #"code spécial" pour éviter toutes les restricions
               canPlay=True
               return canPlay
-            
+
             else :
               canPlay=canPlay and i(carte)
-        
+
         return canPlay
 
 
@@ -389,7 +410,7 @@ class Joueur(Jeu):
         carte = self.hand.pop(cardId)
         carte.pose(self.num)
 
-    def caracteristics(self) : 
+    def caracteristics(self) :
         dico={"Joueur":[self.num,self.nom], "nombre de carte":len(self.hand)}
         return dico
 
@@ -400,14 +421,14 @@ class Special(Carte):
     '''
     def __init__(self, liste):
         Carte.__init__(self,liste)
-    
+
     def pose(self, parent=Jeu.getActive()):
         self.typ=Jeu.table.typ
         Jeu.pose(self)
         for i in self.poseEffect():
             Jeu.player[parent].PoseMethodList.append(i)
         self.setOwner(parent)
-    
+
 
 class Salamandre(Carte):
     ''' equivalent carte +2
@@ -486,7 +507,7 @@ class Esprit(Carte):
 class Cataclysme(Special):
     def __init__(self, liste):
         Carte.__init__(self,liste)
-    
+
     def compatibTest(self, carte):
         if type(carte.val)==str and str(carte.val)!="Dragon":
             return False
@@ -495,13 +516,13 @@ class Cataclysme(Special):
         elif carte.val==0:
             return True
         return False
-        
+
 
 class Tempete (Special):
     def __init__(self, liste):
         liste[0]="Tempête"
         Carte.__init__(self,liste)
-    
+
     def compatibTest(self, carte):
         if type(carte.val)==str and str(carte.val)!="Esprit":
             return False
@@ -510,19 +531,27 @@ class Tempete (Special):
         elif carte.val<5:
             return True
         return False
-        
+
 class Benediction (Special):
     def __init__(self, liste):
         liste[0]="Bénédiction"
         Carte.__init__(self,liste)
-    
+
     def compatibTest(self, carte):
         if type(carte.val)==str:
             return False
         elif carte.val>7:
             return True
         return False
-        
+
 if __name__=='__main__':
+
+    pseudo = input('pseudo')
+    #host = input('host')
+    """port =8082
+    host = '127.0.0.1'
+    myNet = client.Net(host,port,pseudo, 'mdp')
+    myNet.Identify()"""
     a=Jeu(True)
-    a.launch()
+
+paquet=("indice","pseudo")

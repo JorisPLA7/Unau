@@ -5,7 +5,6 @@ import socket
 import threading
 import time
 import pickle
-import
 from threading import Thread
 
 
@@ -94,6 +93,7 @@ class Guest(threading.Thread) :
                 ReceivedNickLen = int(RequeteDuClient[4]) #lecture de la longueur du pseudo (doit être <= à 9 char! )
                 if verbose : print("ReceivedNicklen = {}".format(ReceivedNickLen))
                 self.Nickname = RequeteDuClient[5:5+ReceivedNickLen]
+                self.Client.sendall(self.Client.encode()) #envoi du message ss forme de bytecode
 
                 self.Identificated = True #Le client est désormais identifié
                 me = (self.Client)
