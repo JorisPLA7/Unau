@@ -3,7 +3,6 @@ import sys
 
 
 class Jeu :
-    
 
 
     #----------------------------------------------Classmethods----------------------------------------------------------
@@ -99,7 +98,7 @@ class Jeu :
     getActive=classmethod(getActive)
 
     #----------------------------------------------Instance--------------------------------------------------------------
-    def __init__(self, main=False, nbPl =4 ):
+    def __init__(self, main=False, nbPl =4):
 
         self.autoAsk=False
         if main : Jeu.classInit(nbPl)
@@ -522,7 +521,31 @@ class Benediction (Special):
         elif carte.val>7:
             return True
         return False
-        
+
+from lib.client import *
+
+
+
+def login():
+    '''Fct de démonstration et de test.
+    Par Joris Placette
+    '''
+    host ="127.0.0.1"
+    port = 8082
+    print("Saisir 'q' pour obtenir un terminal de commande")
+    nickname = str(input("saisir un pseudo (inferieur à 10 caractères):  "))
+    password = "lol ;')"
+    global MyNet
+    MyNet = Net(host, port, nickname, password)
+
+    MyNet.Identify() #séquence d'identification
+    if MyNet.Connected == True :
+        print("Vous êtes connecté en tant que {}".format(MyNet.WhoAmI()))
+        print("Pour envoyer les données taper 'network.Transmit(données)' ")
+    else:
+        print("Vous n'êtes pas connecté")
 if __name__=='__main__':
+    global a
     a=Jeu(True)
-    a.launch()
+    #login()
+ 

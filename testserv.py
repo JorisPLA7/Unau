@@ -12,12 +12,5 @@ def SimpleHost():
     MyServ.Listen(True)
     print("En attente de clients...")
 
-    while 1 :
-
-        try :
-            exec(input(">>>")) #sorte d'invite de commande en cas de lancement interactif sur le serveur
-        except:
-            pass
-
 if __name__ == '__main__':
     SimpleHost() # ce fichier sera peut-être une librairie, il faut donc empêcher l'inclusion du login si appelée par un autre fichier.

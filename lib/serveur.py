@@ -5,7 +5,6 @@ import socket
 import threading
 import time
 import pickle
-import
 from threading import Thread
 
 
@@ -206,12 +205,15 @@ def Flow(clientID, clientAddress, clientNick, data):
 
     Par Joris Placette
     '''
+    global cache
+    cache = data
     result = "-- {} -- {} {} :  {}" .format(clientID, clientNick, clientAddress, data)
     print(result)
 
+
     if broadcast == True:
         for i in range(0,len(MyClient)+1):
-            MyClient[i].Transmit(result)
+            MyClient[i].Transmit(data)
 
     if isinstance(data, str) == True:
         a = verificationPseudo(data)

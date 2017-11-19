@@ -35,10 +35,12 @@ class NetThread (threading.Thread) :
 
             try :
                 data = Sock.recv(9000)
+
                 print('received!')
                 dataP = pickle.loads(data)
                 print('unpickled!')
                 print(type(dataP))
+
                 data = dataP #attente d'une reponse pdt 2sec en cas de timeout retourne une erreur, d'ou le try & except
 
                 self.thereIsSomeNewData = True
@@ -126,14 +128,15 @@ class Net ():
         '''
         return self.Nickname
 global Flow
-def Flow(Request):
+
+def Flow(request):
     '''Cette fonction est appelée à chaque fois que des données sont recues.
     Le traitement de ces données est une simple démonstration.
     Cette fonction permettra à Arthur de recevoir et traiter les données émises par les clients.
 
     Par Joris Placette
     '''
-    print(Request)
+    print(request)
 
 
     # variableQuiVautCeQueSamuelAEnvoye = Request

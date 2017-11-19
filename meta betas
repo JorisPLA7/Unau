@@ -12,10 +12,13 @@ monJeu.joueur[0].pseudo=son_pseudonyme
 cercle vertueux:
 
 a = monjeu(True, 4)
-:a
+
+:j
 a.pack()
 myNet.Transmit()
 myNet.Flow()
 a.receptionPaquet()
 a.ask()
 a.pack()
+
+goto j :)
