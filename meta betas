@@ -1,0 +1,21 @@
+BLACKLISTER PSEUDO 'personne_inconnue'
+
+
+ordre :
+Host se connecte (id joueur 0)
+rentre son_pseudonyme
+génère le jeu original (paramètre nb joueurs)
+(monJeu)
+il fait :
+monJeu.joueur[0].pseudo=son_pseudonyme
+
+cercle vertueux:
+
+a = monjeu(True, 4)
+:a
+a.pack()
+myNet.Transmit()
+myNet.Flow()
+a.receptionPaquet()
+a.ask()
+a.pack()
