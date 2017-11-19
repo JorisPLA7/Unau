@@ -323,11 +323,15 @@ class Joueur(Jeu):
             self.endTurn()
     
     def endTurn(self):
+        if len(self.main)== 0 :
+            self.setVictory
         if Jeu.nextPlayer != self.num :
             print("C'est la fin de votre tour.")
         print()
         self.clearLists()
         
+    def setVictory(self):
+        pass
         
         
     def pioche(self) :
@@ -418,15 +422,15 @@ class Salamandre(Carte):
     def poseEffect(self):
 
         def piocheur(cls):
-            print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
+            #print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
             nextPlayer=(Jeu.active + Jeu.sens)%cls.nb_joueurs
 
             try :
 
                 Jeu.counter +=2
-                print("Lézard + 2 !!")
+                #print("Lézard + 2 !!")
             except :
-                print("Traitement du Lézard")
+                #print("Traitement du Lézard")
                 Jeu.counter = 2
 
             can_play=False
@@ -434,7 +438,7 @@ class Salamandre(Carte):
                 can_play=(can_play or i.typ == "Salamandre")
 
             if not can_play :
-                print("C'est parti pour piocher !")
+                #print("C'est parti pour piocher !")
                 for i in range(Jeu.counter):
                     Jeu.player[nextPlayer].pioche()
                     print("Joueur {} pioche !".format(Jeu.player[nextPlayer].num)) #les prints c'est pour pouvoir suivre
@@ -442,7 +446,7 @@ class Salamandre(Carte):
                 Jeu.setNextPlayer(2)
 
             else :
-                print("il parait que tu peux jouer dis donc !")
+                #print("il parait que tu peux jouer dis donc !")
                 def restriction(self, carte):
                     if Jeu.table.val!=carte.val :
                         return False
