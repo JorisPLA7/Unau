@@ -136,7 +136,10 @@ def Flow(request):
 
     Par Joris Placette
     '''
-    print(request)
+    global b
+    b = request
+    print('client.b = {} '.format(b))
+
 
 
     # variableQuiVautCeQueSamuelAEnvoye = Request
