@@ -150,12 +150,18 @@ class Jeu :
     def ask(self):
         
         self.setNextPlayer(1)
-        self.player[self.active].answer()            
-        
+        self.nextPlayer = (self.active + self.sens * 1) % self.nb_joueurs
+        self.player[self.active].answer()
         self.setActive()
-        
-        
-        
+        self.active=self.nextPlayer
+        print("finAsk")
+        print("actif = ", self.active)
+        print("suivant (le meme) = ", self.nextPlayer)
+
+
+
+
+
 
 class Deck(Jeu):
     def __init__(self):
@@ -265,7 +271,7 @@ class Carte(Jeu):
         
 class Joueur(Jeu):
     hand=[]
-    def __init__(self,playNumb,Username='Joueur'):
+    def __init__(self,playNumb,Username='en attente de '):
         self.num=playNumb
         self.nom=Username
         self.hand=[Jeu.pioche() for i in range(7)]
@@ -323,8 +329,8 @@ class Joueur(Jeu):
             self.endTurn()
     
     def endTurn(self):
-        if len(self.main)== 0 :
-            self.setVictory
+        if len(self.hand)== 0 :
+            self.setVictory()
         if Jeu.nextPlayer != self.num :
             print("C'est la fin de votre tour.")
         print()
@@ -526,7 +532,7 @@ class Benediction (Special):
             return True
         return False
 
-from lib.client import *
+from client import *
 
 
 
