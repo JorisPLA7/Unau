@@ -35,7 +35,7 @@ def receptionPaquet(b):
         print('A TOI DE JOUER BB ! !  ... ')
         a.ask()
         a.pack()
-        network.Transmit(a)
+        network.share(a)
 
     else:
         print('en attente de joueur {}:  {} '.format(a.player[a.active].num,a.player[a.active].nom ))
@@ -91,11 +91,11 @@ class NetThread (threading.Thread) :
     def __init__(self):
         threading.Thread.__init__(self) #séquence init du thread
         self.Message = []
-        self.thereIsSomeNewData = False # désolé pour la longueur du nom de cette variable je n'ai pas trouvé mieux
+        self.thereIsSomeNewData = False # désolé pour la longueur du nom de cette variable je nickname'ai pas trouvé mieux
     def __RequestTreatment(self, Request):
 
         receptionPaquet(Request)
-        #Flow(Request)
+        #flow(Request)
         # #extractiona =  des données pour qu'elles soient récupérées par Arthur
 
     def run(self):
@@ -141,44 +141,44 @@ class Net ():
         Sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # on cree notre socket
         Sock.settimeout(1.0) #timeout crucial pour que le serv abandonne l'écoute toute les 2 secondes pour transmettre le(s) message(s)
 
-        self.Host = socket.gethostbyname(Host) #récupération de l'adresse auprès des DNS par défaut si nom de domaine fourni
-        self.Port = Port
-        self.Nickname = Nickname #La Gui indique Pseudo au lieu de Nickname, doit mesurer 10 charactères ou moins
-        self.NickLen = str(len(self.Nickname))  #calcul de la longueur du Pseudonyme
-        self.Pass = Pass #le pas ne sert pas durant la phase d'identification du client, j'ai cependant implanté cette variable si mes camarades en ont besoin
-        self.Connected = False
+        self.host = socket.gethostbyname(Host) #récupération de l'adresse auprès des DNS par défaut si nom de domaine fourni
+        self.port = Port
+        self.nickname = Nickname #La Gui indique Pseudo au lieu de nickname, doit mesurer 10 charactères ou moins
+        self.nickLen = str(len(self.nickname))  #calcul de la longueur du Pseudonyme
+        self.password = Pass #le pas ne sert pas durant la phase d'identification du client, j'ai cependant implanté cette variable si mes camarades en ont besoin
+        self.connected = False
         self.__NetThread = NetThread()
         self.__NetThread.start() #Démarrage du thread chargé d'éccouter et de shipper les messages
 
-    def Identify(self):
+    def identify(self):
         '''Envoie une requette d'identification.
         Necessaire coté serveur c'est la première chose à faire après avoir initialisé Net.
 
         Par Joris Placette
         '''
-        data = bytes("IDTF" + self.NickLen + self.Nickname, 'utf8') #on crée la chaine d'info d'identification comme "IDTF7exemple"
+        data = bytes("IDTF" + self.nickLen + self.nickname, 'utf8') #on crée la chaine d'info d'identification comme "IDTF7exemple"
 
         try:
-            Sock.connect((self.Host,self.Port)) # on se connecte sur le serveur avec les informations données
+            Sock.connect((self.host, self.port)) # on se connecte sur le serveur avec les informations données
             print("Connection avec le serveur...")
             Sock.sendall(data)
             print("Identification auprès du serveur...")
             time.sleep(1) #afin de donner le temps au serv d'être en écoute
 
-            self.Connected = True #la connexion a été établie, MAJ du status
+            self.connected = True #la connexion a été établie, MAJ du status
 
         except:
             print("Impossible de se connecter au serveur !")
-            self.Connected = False
+            self.connected = False
 
-    def Connected(self):
+    def connected(self):
         '''Affiche le statut du client vis à vis du serveur
 
         Par Joris Placette
         '''
-        return self.Connected
+        return self.connected
 
-    def Disconnect(self):
+    def disconnect(self):
         '''Force la fermeture de la connexion, rends impossible l'entrée et la sortie de données.
 
         Par Joris Placette
@@ -186,7 +186,7 @@ class Net ():
         Sock.close() # rends impossible l'entrée et la sortie de données.
         print("Disconnected")
 
-    def Transmit(self,typed):
+    def share(self, typed):
         '''Permet de transmettre une chaine de caractères brute au serveur.
 
         /!\ : Pour le moment les messages sont transmis toute les 2sec et non empillés, donc en cas de spam des messages seront perdus :/
@@ -197,17 +197,18 @@ class Net ():
 
         Par Joris Placette
         '''
-        self.__NetThread.Message.append(typed) #transmett la chaine au thread, on n'execute pas de fonction sinon il faut attentdre la fin de celle-ci , on se contente donc de transmettre la donnée.
+        self.__NetThread.Message.append(typed) #transmett la chaine au thread, on nickname'execute pas de fonction sinon il faut attentdre la fin de celle-ci , on se contente donc de transmettre la donnée.
 
-    def WhoAmI(self):
+    def whoAmI(self):
         '''Renvoie le Pseudonyme déclaré au serveur lors de l'__init__()
 
         Par Joris Placette
         '''
-        return self.Nickname
-global Flow
+        return self.nickname
 
-def Flow(request):
+global flow
+
+def flow(request):
     '''Cette fonction est appelée à chaque fois que des données sont recues.
     Le traitement de ces données est une simple démonstration.
     Cette fonction permettra à Arthur de recevoir et traiter les données émises par les clients.
@@ -253,12 +254,12 @@ def login():
     global MyNet
     MyNet = Net(Host, Port , Nickname, Pass)
 
-    MyNet.Identify() #séquence d'identification
-    if MyNet.Connected == True :
-        print("Vous êtes connecté en tant que {}".format(MyNet.WhoAmI()))
+    MyNet.identify() #séquence d'identification
+    if MyNet.connected == True :
+        print("Vous êtes connecté en tant que {}".format(MyNet.whoAmI()))
         while True:
             Typed = input(">")
-            MyNet.Transmit({'test':45, 'text':Typed})
+            MyNet.share({'test':45, 'text':Typed})
 
 
 
@@ -285,11 +286,5 @@ if __name__ == '__main__':
     #création de l'objet de networking client
     network = Net(host, port, localNickname, password)
     #identification auprès du serveur
-    network.Identify()
-
-
-
-
-
-
+    network.identify()
 

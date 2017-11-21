@@ -101,7 +101,7 @@ class Guest(threading.Thread) :
                 print("Client {} Identifié !".format(self.Nickname))
 
     def __RequestTreatment(self, Request):
-        Flow(self.__GuestID, self.Address, self.Nickname, Request) #sinon on la soumet à la fonction Flow pour Samuel
+        Flow(self.__GuestID, self.Address, self.Nickname, Request) #sinon on la soumet à la fonction flow pour Samuel
 
     def Transmit(self, msg):
         '''Cette fonction permet à mes camarades d'envoyer du contenu tel qu'une chaine de caractères (un tuple, une image, etc...) au client.

@@ -19,7 +19,7 @@ a = monjeu(True, 4)
 :j
 a.pack()
 myNet.Transmit()
-myNet.Flow()
+myNet.flow()
 a.receptionPaquet()
 a.ask()
 a.pack()
