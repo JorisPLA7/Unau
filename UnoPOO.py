@@ -35,23 +35,23 @@ class Jeu :
 
     pioche=classmethod(pioche)
 
-    def setNextPlayer(cls,nb=1):
+    def setNextPlayer(self,nb=1):
         '''nexp = 0 le joueur rejoue
         =1 joueur suivant
         =-1 joueur précédent sans changement de sens
 
         NON TESTE
         '''
-        cls.nextPlayer=(cls.active+cls.sens*nb)%cls.nb_joueurs
+        self.nextPlayer=(self.active+self.sens*nb)%self.nb_joueurs
         
         #print("le joueur suivant sera donc : {} {}".format(cls.player[cls.nextPlayer].nom,cls.player[cls.nextPlayer].num))
         
 
     setNextPlayer=classmethod(setNextPlayer)
     
-    def setActive(cls):
-        cls.active=cls.nextPlayer
-    setActive=classmethod(setActive)  
+    def setActive(self):
+        self.active=self.nextPlayer
+
       
     def pose(cls,carte):
         cls.bin.append(cls.table)
@@ -150,10 +150,10 @@ class Jeu :
     def ask(self):
         
         self.setNextPlayer(1)
-        self.nextPlayer = (self.active + self.sens * 1) % self.nb_joueurs
+        #self.nextPlayer = (self.active + self.sens * 1) % self.nb_joueurs
         self.player[self.active].answer()
         self.setActive()
-        self.active=self.nextPlayer
+        # self.active=self.nextPlayer
         print("finAsk")
         print("actif = ", self.active)
         print("suivant (le meme) = ", self.nextPlayer)
@@ -427,9 +427,9 @@ class Salamandre(Carte):
 
     def poseEffect(self):
 
-        def piocheur(cls):
+        def piocheur(self):
             #print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
-            nextPlayer=(Jeu.active + Jeu.sens)%cls.nb_joueurs
+            nextPlayer=(Jeu.active + Jeu.sens)%Jeu.nb_joueurs
 
             try :
 
@@ -466,14 +466,14 @@ class Salamandre(Carte):
 
 
 
-class Dragon(Carte):
+class Dragon(Carteaeeeeeeeee):
     ''' equivalent carte 'No'
     '''
     def __init__(self, liste):
         Carte.__init__(self,liste)
-
-    def poseEffect(self):
-        def saut(cls):
+ezfaef
+    def poseEffect(self):zef
+        def saut(self):
             Jeu.setNextPlayer(2)
 
         return [saut]
@@ -486,7 +486,7 @@ class Esprit(Carte):
         Carte.__init__(self,liste)
 
     def poseEffect(self):
-        def changementSens(cls):
+        def changementSens(self):
             Jeu.sens = Jeu.sens*(-1)
             Jeu.setNextPlayer(1)
 
