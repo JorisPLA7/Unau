@@ -1,5 +1,8 @@
 BLACKLISTER PSEUDO 'personne_inconnue'
 
+problèmes:
+    saut de tour defectueux
+
 
 ordre :
 Host se connecte (id joueur 0)
@@ -22,3 +25,18 @@ a.ask()
 a.pack()
 
 goto j :)
+
+initialisation de la partie
+    lancement serveur
+    connexion des 2 clients
+    les autres clients se coordonnent et s'attribuent un numero respectif à la main
+
+    client1 lance son jeu ask()
+    les données du jeu de client1 sont diffusées
+
+    while 1:
+        chaque client execute ask()
+        si le numero du joueur local est celui du joueur à jouer alors son tour est lancé
+        à la fin du tour les données du joueur ayant joué sont packées et envoyées
+
+
