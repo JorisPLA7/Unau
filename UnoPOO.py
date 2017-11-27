@@ -35,23 +35,33 @@ class Jeu :
 
     pioche=classmethod(pioche)
 
-    def setNextPlayer(cls,nb=1):
+    def setNext(cls,nb=1):
         '''nexp = 0 le joueur rejoue
         =1 joueur suivant
         =-1 joueur précédent sans changement de sens
 
         NON TESTE
         '''
-        cls.nextPlayer=(cls.active+cls.sens*nb)%cls.nb_joueurs
-        
+        next=(cls.active+cls.sens*nb)%cls.nb_joueurs
+        cls.nextPlayer=next
         #print("le joueur suivant sera donc : {} {}".format(cls.player[cls.nextPlayer].nom,cls.player[cls.nextPlayer].num))
-        
+        return next
 
-    setNextPlayer=classmethod(setNextPlayer)
-    
-    def setActive(cls):
-        cls.active=cls.nextPlayer
-    setActive=classmethod(setActive)  
+    setNext=classmethod(setNext)
+
+    def setNextPlayer(self, nb=1):
+        self.nextPlayer=self.setNext(nb)
+
+
+    def setAct(cls):
+        act=cls.nextPlayer
+        cls.active=act
+        return act
+    setAct=classmethod(setAct)
+
+    def setActive(self):
+        self.active=self.setAct()
+
       
     def pose(cls,carte):
         cls.bin.append(cls.table)
@@ -73,7 +83,7 @@ class Jeu :
 
     autorisation=classmethod(autorisation)
 
-    
+
     def unpack(cls, data): #pour récupérer les données, écrire a.unpack(a)
       [cls.active,
           cls.nextPlayer,
@@ -83,7 +93,7 @@ class Jeu :
           cls.nb_joueurs,
           cls.sens,
           cls.modificateurs_de_jeu,
-          cls.autoAsk]=list(data)
+          cls.autoAsk] = list(data)
       
         
     
@@ -96,11 +106,13 @@ class Jeu :
     getActive=classmethod(getActive)
 
     #----------------------------------------------Instance--------------------------------------------------------------
-    def __init__(self, main=False, nbPl =4):
+    def __init__(self, main=False, packet="False", nbPl =4):
 
         self.autoAsk=False
         if main : Jeu.classInit(nbPl)
-        self.pack()
+        if packet!="False":
+            self.unpack(packet)
+
         
     def enregistrer(self) : 
         
@@ -276,7 +288,7 @@ class Joueur(Jeu):
         self.nom=Username
         self.hand=[Jeu.pioche() for i in range(7)]
 
-        self.StartMethodList=[]
+        self.StartMethodList = []
         self.PoseMethodList=[]
         self.restrictions=[]
     
