@@ -4,7 +4,6 @@ import threading
 import UnoPOO
 import time
 import pickle
-import client
 
 #---------------------UNO Local---------------------------
 
@@ -22,26 +21,12 @@ def getNetworkInfos():
     return (host, port, nickname, password)
 
 def getLocalID():
-    id = int(input('saisir id client local entre 0 et 1'))
+    id = int(input('saisir id client local entre 0 et 1 :  '))
     return id
 
 
-def receptionPaquet(b):
-    a.unpack(b)
-    print('b unpacked in a')
-    a.player[localID].nom=localNickname
 
-    if localID == a.active :
-        print('A TOI DE JOUER BB ! !  ... ')
-        a.ask()
-        a.pack()
-        network.share(a)
-
-    else:
-        print('en attente de joueur {}:  {} '.format(a.player[a.active].num,a.player[a.active].nom ))
-
-
-
+'''
     def run(self):
 
         while 1:
@@ -71,7 +56,7 @@ def receptionPaquet(b):
             if self.thereIsSomeNewData:
                 self.__RequestTreatment(data)#J'ai sorti la fonction du try; pour rendre le débuggage possible
             self.thereIsSomeNewData = False
-
+'''
 #------------------------client.py---------------------
 
 
@@ -262,20 +247,26 @@ def login():
             MyNet.share({'test':45, 'text':Typed})
 
 
+def receptionPaquet(paquetIn):
+    global a
+    del a
+    a = UnoPOO.Jeu(False, paquetIn)
+    a.player[localID].nom=localNickname
 
+    if localID == a.active :
+        print('''! ! !  A TOI DE JOUER ! ! !''')
+        a.ask()
+        paquetOut = a.pack()
+        network.share(paquetOut)
 
-
-
-
-
-
-
+    else:
+        print('en attente de joueur {}:  {} '.format(a.player[a.active].num,a.player[a.active].nom ))
 
 if __name__ == '__main__':
     #création de l'objet jeu
     global a
-    a = UnoPOO.Jeu(True, 2)
-    a.pack()
+    a = UnoPOO.Jeu(True, 'False', 2)
+    paquet = a.pack()
 
     global localID, localNickname
     localID = getLocalID()
