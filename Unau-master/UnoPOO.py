@@ -62,25 +62,25 @@ class Jeu :
         self.active=self.setAct()
 
       
-    def pose(cls,carte):
-        cls.bin.append(cls.table)
-        cls.table=carte
+    def pose(self,carte):
+        self.bin.append(cls.table)
+        self.table=carte
 
-    pose=classmethod(pose)
+    
 
-    def autorisation(cls, carte):
+    def autorisation(self, carte):
         can_play=True
-        for i in cls.modificateurs_de_jeu :
+        for i in self.modificateurs_de_jeu :
             can_play= can_play and i[0]()
         return can_play
 
 
-    def applyModifs(cls):
+    def applyModifs(self):
         for i in cls.modificateurs_de_jeu :
             i[1]()
-        cls.modificateurs_de_jeu=[]
+        self.modificateurs_de_jeu=[]
 
-    autorisation=classmethod(autorisation)
+    
 
 
     def unpack(cls, data): #pour récupérer les données, écrire a.unpack(a)
@@ -380,7 +380,7 @@ class Joueur(Jeu):
     def verify(self, carte): #détermine si une carte est jouable en prenant en compte les restricions imposées par...
 
         canPlay=True
-        canPlay=(canPlay and Jeu.autorisation(carte) )#les modificateurs de jeu en cours
+        #canPlay=(canPlay and Jeu.autorisation(carte) )#les modificateurs de jeu en cours
         canPlay=(canPlay and carte.compatibTest(Jeu.table) )#la carte elle-même
         for i in self.restrictions : #les diverses restrictions supplémentaires du joueur
             if i(carte)=="ByPass" : #"code spécial" pour éviter toutes les restricions

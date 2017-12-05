@@ -279,3 +279,9 @@ if __name__ == '__main__':
     #identification auprès du serveur
     network.identify()
 
+    while True :
+        try :
+            exec(input(">>>"))
+        except :
+            print("error")
+            
