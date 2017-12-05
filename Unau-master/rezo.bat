@@ -1,0 +1,1 @@
+C:\WinPython3.6.1\python-3.6.1.amd64\python -i \\ad.u-ga.fr\home_etu\p\peremate\Documents\Unau-master\Unau-master\UnoNoRezo.py
