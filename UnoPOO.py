@@ -35,45 +35,54 @@ class Jeu :
 
     pioche=classmethod(pioche)
 
-    def setNextPlayer(cls,nb=1):
+    def setNext(self,nb=1):
         '''nexp = 0 le joueur rejoue
         =1 joueur suivant
         =-1 joueur précédent sans changement de sens
 
         NON TESTE
         '''
-        cls.nextPlayer=(cls.active+cls.sens*nb)%cls.nb_joueurs
-        
+        next=(self.active+self.sens*nb)%self.nb_joueurs
+        self.nextPlayer=next
         #print("le joueur suivant sera donc : {} {}".format(cls.player[cls.nextPlayer].nom,cls.player[cls.nextPlayer].num))
-        
+        return next
 
-    setNextPlayer=classmethod(setNextPlayer)
+
+    def setNextPlayer(self, nb=1):
+        self.nextPlayer=self.setNext(nb)
+
+
+    def setAct(self):
+        act=self.nextPlayer
+        self.active=act
+        return act
     
-    def setActive(cls):
-        cls.active=cls.nextPlayer
-    setActive=classmethod(setActive)  
+
+    def setActive(self):
+        self.active=self.setAct()
+
       
-    def pose(cls,carte):
-        cls.bin.append(cls.table)
-        cls.table=carte
+    def pose(self,carte):
+        self.bin.append(cls.table)
+        self.table=carte
 
-    pose=classmethod(pose)
+    
 
-    def autorisation(cls, carte):
+    def autorisation(self, carte):
         can_play=True
-        for i in cls.modificateurs_de_jeu :
+        for i in self.modificateurs_de_jeu :
             can_play= can_play and i[0]()
         return can_play
 
 
-    def applyModifs(cls):
+    def applyModifs(self):
         for i in cls.modificateurs_de_jeu :
             i[1]()
-        cls.modificateurs_de_jeu=[]
-
-    autorisation=classmethod(autorisation)
+        self.modificateurs_de_jeu=[]
 
     
+
+
     def unpack(cls, data): #pour récupérer les données, écrire a.unpack(a)
       [cls.active,
           cls.nextPlayer,
@@ -83,7 +92,7 @@ class Jeu :
           cls.nb_joueurs,
           cls.sens,
           cls.modificateurs_de_jeu,
-          cls.autoAsk]=list(data)
+          cls.autoAsk] = list(data)
       
         
     
@@ -96,11 +105,13 @@ class Jeu :
     getActive=classmethod(getActive)
 
     #----------------------------------------------Instance--------------------------------------------------------------
-    def __init__(self, main=False, nbPl =4):
+    def __init__(self, main=False, packet="False", nbPl =4):
 
         self.autoAsk=False
         if main : Jeu.classInit(nbPl)
-        self.pack()
+        if packet!="False":
+            self.unpack(packet)
+
         
     def enregistrer(self) : 
         
@@ -276,7 +287,7 @@ class Joueur(Jeu):
         self.nom=Username
         self.hand=[Jeu.pioche() for i in range(7)]
 
-        self.StartMethodList=[]
+        self.StartMethodList = []
         self.PoseMethodList=[]
         self.restrictions=[]
     
@@ -369,7 +380,7 @@ class Joueur(Jeu):
     def verify(self, carte): #détermine si une carte est jouable en prenant en compte les restricions imposées par...
 
         canPlay=True
-        canPlay=(canPlay and Jeu.autorisation(carte) )#les modificateurs de jeu en cours
+        #canPlay=(canPlay and Jeu.autorisation(carte) )#les modificateurs de jeu en cours
         canPlay=(canPlay and carte.compatibTest(Jeu.table) )#la carte elle-même
         for i in self.restrictions : #les diverses restrictions supplémentaires du joueur
             if i(carte)=="ByPass" : #"code spécial" pour éviter toutes les restricions
@@ -427,9 +438,9 @@ class Salamandre(Carte):
 
     def poseEffect(self):
 
-        def piocheur(cls):
+        def piocheur(self):
             #print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
-            nextPlayer=(Jeu.active + Jeu.sens)%cls.nb_joueurs
+            nextPlayer=(Jeu.active + Jeu.sens)%self.nb_joueurs
 
             try :
 
@@ -473,7 +484,7 @@ class Dragon(Carte):
         Carte.__init__(self,liste)
 
     def poseEffect(self):
-        def saut(cls):
+        def saut(self):
             Jeu.setNextPlayer(2)
 
         return [saut]
@@ -486,7 +497,7 @@ class Esprit(Carte):
         Carte.__init__(self,liste)
 
     def poseEffect(self):
-        def changementSens(cls):
+        def changementSens(self):
             Jeu.sens = Jeu.sens*(-1)
             Jeu.setNextPlayer(1)
 
