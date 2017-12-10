@@ -76,7 +76,8 @@ class Jeu:
         self.modificateurs_de_jeu = []
 
     def unpack(self, data):  # pour récupérer les données, écrire a.unpack(a)
-        [self.active,
+        [self.deck,
+         self.active,
          self.nextPlayer,
          self.bin,
          self.table,
@@ -106,7 +107,7 @@ class Jeu:
 
     def enregistrer(self):
 
-        data = [
+        data = [self.deck,
             self.active,
             self.nextPlayer,
             self.bin,
@@ -451,11 +452,11 @@ class Salamandre(Carte):
         jeu.pose(self)
         self.setOwner(joueur.num)
         
-        paquet, jeu = self.poseEffect()
+        paquet, jeu = self.poseEffect(jeu)
         
         return jeu, paquet
         
-    def poseEffect(self):
+    def poseEffect(self, jeu):
 
     
         #print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
@@ -500,7 +501,7 @@ class Dragon(Carte):
     def __init__(self, liste):
         Carte.__init__(self, liste)
 
-    def poseEffect(self):
+    def poseEffect(self, jeu):
 
         jeu.setNextPlayer(2)
         return joueur.pack(), jeu
@@ -511,7 +512,7 @@ class Dragon(Carte):
         jeu.pose(self)
         self.setOwner(joueur.num)
         
-        paquet, jeu = self.poseEffect()
+        paquet, jeu = self.poseEffect(jeu)
         
         return jeu, paquet
 
