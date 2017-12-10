@@ -452,11 +452,11 @@ class Salamandre(Carte):
         jeu.pose(self)
         self.setOwner(joueur.num)
         
-        paquet, jeu = self.poseEffect(jeu)
+        paquet, jeu = self.poseEffect(jeu, joueur)
         
         return jeu, paquet
         
-    def poseEffect(self, jeu):
+    def poseEffect(self, jeu, joueur):
 
     
         #print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
@@ -501,7 +501,7 @@ class Dragon(Carte):
     def __init__(self, liste):
         Carte.__init__(self, liste)
 
-    def poseEffect(self, jeu):
+    def poseEffect(self, jeu, joueur):
 
         jeu.setNextPlayer(2)
         return joueur.pack(), jeu
@@ -512,7 +512,7 @@ class Dragon(Carte):
         jeu.pose(self)
         self.setOwner(joueur.num)
         
-        paquet, jeu = self.poseEffect(jeu)
+        paquet, jeu = self.poseEffect(jeu, joueur)
         
         return jeu, paquet
 
@@ -523,7 +523,7 @@ class Esprit(Carte):
     def __init__(self, liste):
         Carte.__init__(self, liste)
 
-    def poseEffect(self):
+    def poseEffect(self, jeu,joueur):
         
         jeu.sens = jeu.sens * (-1)
         jeu.setNextPlayer(1)
@@ -535,7 +535,7 @@ class Esprit(Carte):
         jeu.pose(self)
         self.setOwner(joueur.num)
         
-        paquet, jeu = self.poseEffect()
+        paquet, jeu = self.poseEffect(jeu, joueur)
         
         return jeu, paquet
 
