@@ -1,238 +1,460 @@
 from random import *
+#from lib import serveur
+#from lib import client
+import sys
 
 
-class Jeu:
-    # ----------------------------------------------Classmethods----------------------------------------------------------
+class Jeu :
 
-    
 
-    def gameInit(self, nombreJoueurs, nombreCartes):
+
+    #----------------------------------------------Classmethods----------------------------------------------------------
+
+    def getUsernames(cls): #voir avec le serveur
+        pass
+
+
+    def classInit (cls, nombreJoueurs):
         """ Fonction qui initialise tout le jeu, le programme peut tourner sans mais il faut alors créer les instances à la main et certaines méthodes ne sont pas disponibles"""
 
-        self.active = 0  # Id du joueur actif
-        self.nextPlayer = 1
-        self.bin = []  # défausse
-        self.deck = Deck  # le deck est un objet aussi
-        self.deck.__init__(self.deck)  # pas nécessaire mais il y avait des bugs (je retirerai quand tout sera bien fini)
-        self.table = self.pioche()  # carte retournée
-        self.nb_joueurs = nombreJoueurs
-        self.sens = 1
-        self.modificateurs_de_jeu = []
-        self.extensions = {}
-        while type(self.table) != Carte:  # on retourne des cartes jusqu'à obtenir une carte "normale"
-            self.pose(self.pioche())
+        cls.active=0 # Id du joueur actif
+        cls.nextPlayer=1
+        cls.bin=[] #défausse
+        cls.deck=Deck # le deck est un objet aussi
+        cls.deck.__init__(cls.deck) # pas nécessaire mais il y avait des bugs (je retirerai quand tout sera bien fini)
+        cls.table=cls.pioche() #carte retournée
+        while type(cls.table)!=Carte : # on retourne des cartes jusqu'à obtenir une carte "normale"
+            cls.pose(cls.pioche())
 
-        self.player = []  # liste des joueurs
-        for i in range(nombreJoueurs):
-            self.player.append(Joueur(i))
-            paquet = self.player[i].main_depart(self)
-            self.unpack(paquet)
-            
-        
-    
+        cls.player=[Joueur(i) for i in range(nombreJoueurs)] #liste des joueurs
+        cls.nb_joueurs=nombreJoueurs
+        cls.sens=1
+        cls.modificateurs_de_jeu=[]
 
-    def pioche(self):
-        carte, status = self.deck.pioche(self.deck, self.bin) #status : nb de carte restantes dans le deck
-        if status == 0 :
-            self.bin=[]
-        return carte
+    classInit=classmethod(classInit) #diffuse cette méthode sur l'ensemble des objets de cette classe ainsi que les sous-classes (n'importe quelle instance (même une carte) peut donc modifier les propriétés du Jeu)
 
-    
+    def pioche(cls):
+        return cls.deck.pioche(cls.deck)
 
-    def setNextPlayer(self, nb=1):
+    pioche=classmethod(pioche)
+
+    def setNextPlayer(cls,nb=1):
         '''nexp = 0 le joueur rejoue
         =1 joueur suivant
         =-1 joueur précédent sans changement de sens
 
         NON TESTE
         '''
-        next = (self.active + self.sens * nb) % self.nb_joueurs
-        self.nextPlayer = next
-        # print("le joueur suivant sera donc : {} {}".format(self.player[self.nextPlayer].nom,self.player[self.nextPlayer].num))
-        return next
+        cls.nextPlayer=(cls.active+cls.sens*nb)%cls.nb_joueurs
 
-    
+        #print("le joueur suivant sera donc : {} {}".format(cls.player[cls.nextPlayer].nom,cls.player[cls.nextPlayer].num))
 
-    def setActive(self):
-        act = self.nextPlayer
-        self.active = act
-        return act
 
-    
+    setNextPlayer=classmethod(setNextPlayer)
 
-    def pose(self, carte):
-        self.bin.append(self.table)
-        self.table = carte
+    def setActive(cls):
+        cls.active=cls.nextPlayer
+    setActive=classmethod(setActive)
 
-    def autorisation(self, carte):
-        can_play = True
-        for i in self.modificateurs_de_jeu:
-            can_play = can_play and i[0](carte)
+    def pose(cls,carte):
+        cls.bin.append(cls.table)
+        cls.table=carte
+
+    pose=classmethod(pose)
+
+    def autorisation(cls, carte):
+        can_play=True
+        for i in cls.modificateurs_de_jeu :
+            can_play= can_play and i[0]()
         return can_play
 
-    def applyModifs(self):
-        for i in self.modificateurs_de_jeu:
+
+    def applyModifs(cls):
+        for i in modificateurs_de_jeu :
             i[1]()
-        self.modificateurs_de_jeu = []
+        cls.modificateurs_de_jeu=[]
 
-    def unpack(self, data):  # pour récupérer les données, écrire a.unpack(a)
-        [self.deck,
-         self.active,
-         self.nextPlayer,
-         self.bin,
-         self.table,
-         self.player,
-         self.nb_joueurs,
-         self.sens,
-         self.modificateurs_de_jeu,
-         self.autoAsk,
-         self.extensions] = list(data)
+    autorisation=classmethod(autorisation)
 
-    def getActive(self):  # fonction pas nécessaire mais utile au déboguage
-        try:
-            return self.active
-        except:
+
+    def unpack(cls, obj): #pour récupérer les données, écrire a.unpack(a)
+      cls.data=list(obj.data)
+      [cls.active,
+          cls.nextPlayer,
+          cls.bin,
+          cls.table,
+          cls.player,
+          cls.nb_joueurs,
+          cls.sens,
+          cls.modificateurs_de_jeu,
+          cls.autoAsk]=list(cls.data)
+
+
+
+
+
+    def getActive(cls): #fonction pas nécessaire mais utile au déboguage
+        try :
+            return cls.active
+        except :
             return -1
+    getActive=classmethod(getActive)
 
-    
+    #----------------------------------------------Instance--------------------------------------------------------------
+    def __init__(self, main=False, nbPl =4):
 
-    # ----------------------------------------------Instance--------------------------------------------------------------
-    
-    def __init__(self, main=False, packet="False", nombreJoueurs=2, nombreCartes=7):
+        self.autoAsk=False
+        if main : Jeu.classInit(nbPl)
 
-        self.autoAsk = False
-        if main: self.gameInit(nombreJoueurs,nombreCartes)
-        if packet != "False":
-            self.unpack(packet)
 
-    def enregistrer(self):
+    def receptionPaquet(self):
+        self.unpack(self)
+        if self.idJoueurLocal == self.active :
+            self.ask()
+        elif "personne_inconnu" in [self.player[i].nom for i in range(len(self.player))] :
+            for i in range(len(self.player)) :
+                if self.player[i].nom=="personne_inconnu" :
+                player[i].nom=pseudo
+                idJoueurLocal=player[i].num
+                continue
 
-        data = [self.deck,
-            self.active,
-            self.nextPlayer,
-            self.bin,
-            self.table,
-            self.player,
-            self.nb_joueurs,
-            self.sens,
-            self.modificateurs_de_jeu,
-            self.autoAsk,
-            self.extensions
-        ]
-        return data
 
-    def pack(self):
-        self.data = list(self.enregistrer())
 
-        return self.data
-
-    def describe(self):  # si tu es perdu Joris
-        dico = self.caracteristics()
-
-        print(self.caracteristics())
+    def enregistrer(self) :
+        dico={}
+        dico['data']= [
+          self.active,
+          self.nextPlayer,
+          self.bin,
+          self.table,
+          self.player,
+          self.nb_joueurs,
+          self.sens,
+          self.modificateurs_de_jeu,
+          self.autoAsk
+                ]
         return dico
 
+    def pack(self):
+      self.data=self.enregistrer()
+      self.data=list(self.data["data"])
+      myNet.Transmit(a)
+
+    def describe(self): # si tu es perdu Joris
+        dico=self.caracteristics()
+
+        print(self.caracteristics())
+
     def launch(self):
-        self.autoAsk = True
+        self.autoAsk=True
         self.routine()
 
     def routine(self):
-        while self.autoAsk == True:
+        while self.autoAsk == True :
 
-            request = input("Appuyez sur Entrée ou entrez une commande :")
-            if request == "stop":
-                self.autoAsk = False
-            elif len(request) != 0:
-                try:
+            request=input("Appuyez sur Entrée ou entrez une commande :")
+            if request=="stop":
+              self.autoAsk = False
+            elif len(request)!=0 :
+                try :
                     exec(request)
-                except:
+                except :
                     print("Erreur.")
-            else:
-                if self.player[self.active].nom == 'en attente de ' :
-                    self.player[self.active].nom = input("Entrez ici votre nom : ")
+            else :
                 self.ask()
+
+
+    def identification(self):
+
 
     def ask(self):
 
-        self.setNextPlayer(1)
-        
-        paquet=self.player[self.active].answer(self)
-        
-        self.unpack(paquet)
-        
-        self.setActive()
-        
-        #print("finAsk")
-        #print("actif = ", self.active)
-        #print("suivant (le meme) = ", self.nextPlayer)
+            self.setNextPlayer(1)
+            self.player[self.active].answer()
+
+            self.setActive()
+
+            self.pack()
+
+
 
 
 class Deck(Jeu):
     def __init__(self):
-        deckInit = [["Cataclysme", "Pouvoir"], ["Cataclysme", "Pouvoir"], ["Benediction", "Pouvoir"],
-                    ["Benediction", "Pouvoir"], ["Benediction", "Pouvoir"], ["Benediction", "Pouvoir"],
-                    ["Tempete", "Pouvoir"], ["Tempete", "Pouvoir"], ["Tempete", "Pouvoir"], ["Tempete", "Pouvoir"]]
+<<<<<<< HEAD
+        deckInit = [["Cataclysme", "Pouvoir"], ["Cataclysme", "Pouvoir"],["Cataclysme", "Pouvoir"], ["Cataclysme", "Pouvoir"],["Tempete", "Pouvoir"], ["Tempete", "Pouvoir"], ["Tempete", "Pouvoir"], ["Tempete", "Pouvoir"]]
         val = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "Salamandre", 1, 2, 3, 4, 5, 6, 7, 8, 9, "Salamandre", "Dragon", "Dragon",
                "Esprit", "Esprit"]
         colors = ["Bambous", "Cascade", "Braises", "Lumière"]
+=======
+        deckInit=[["Cataclysme","Pouvoir"] , ["Cataclysme","Pouvoir"]  , ["Benediction","Pouvoir"] , ["Benediction","Pouvoir"] , ["Benediction","Pouvoir"] , ["Benediction","Pouvoir"], ["Tempete","Pouvoir"] , ["Tempete","Pouvoir"] , ["Tempete","Pouvoir"] , ["Tempete","Pouvoir"] ]
+        val=[0,1,2,3,4,5,6,7,8,9,"Salamandre",1,2,3,4,5,6,7,8,9,"Salamandre","Dragon","Dragon","Esprit","Esprit"]
+        colors=["Bambous","Cascade","Braises","Lumière"]
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
         for i in range(len(val)):
             for j in range(len(colors)):
-                deckInit.append([val[i], colors[j]])
+                deckInit.append([val[i],colors[j]])
 
-        self.deckActive = []
-        
-        for i in deckInit:
+        self.deckActive=[]
+        for i in deckInit :
             self.deckActive.append(self.createCard(i))
 
         shuffle(self.deckActive)
 
     def createCard(liste):
 
-        if type(liste[0]) == int:
+        if type(liste[0]) == int :
             return Carte(liste)
 
-        if liste[0] == "Salamandre":
+        if liste[0] == "Salamandre" :
             return Salamandre(liste)
 
-        if liste[0] == "Dragon":
+        if liste[0] == "Dragon" :
             return Dragon(liste)
 
-        if liste[0] == "Esprit":
+        if liste[0] == "Esprit" :
             return Esprit(liste)
 
-        if liste[0] == "Cataclysme":
+        if liste[0] == "Cataclysme" :
             return Cataclysme(liste)
 
-        if liste[0] == "Benediction":
+        if liste[0] == "Benediction" :
             return Benediction(liste)
 
-        if liste[0] == "Tempete":
+        if liste[0] == "Tempete" :
             return Tempete(liste)
 
+<<<<<<< HEAD
         
 
     def reset(self, bin):
-        cartes = bin
+        cartes = list(bin)
         
         for i in range(len(cartes)) :
             cartes[i]=createCard(cartes[i].id) # on régénère un deck neuf, sans modification
+=======
+        """
+                else :
+                    carte=None
+                    exec("carte = {}([0,0])".format("Cataclysme") )# dans le cas d'un apport d'une nouvelle classe
+                    print(carte)
+                    return carte
+        """
+        #NE FONCTIONNE QUE DANS LA SHELL
+
+    def reset(self):
+        cartes=Jeu.bin
+        Jeu.bin=[]
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
         shuffle(cartes)
-        self.deckActive = cartes
+        self.deckActive=cartes
 
-    def pioche(self, bin):
-        
+    def pioche(self):
+
         carte = self.deckActive.pop()
-        status = len(self.deckActive)
-        if status == 0:
-            self.reset(bin)
-            
-        return carte, status
+        if len(self.deckActive)==0:
+            self.reset()
+        return carte
 
-    def caracteristics(self):
-        dico = {"nombre de cartes" : len(self.deckActive), "cartes" : self.deckActive}
+    def caracteristics(self) :
+        dico={}
         return dico
 
+<<<<<<< HEAD
+=======
+class Carte(Jeu):
+    def __init__(self,liste):
 
+        self.id=liste
+        self.val=liste[0]
+        self.typ=liste[1]
+        self.owner= None
+
+
+
+    def pose(self, parent=Jeu.getActive()):
+        Jeu.pose(self)
+        for i in self.poseEffect():
+            Jeu.player[parent].PoseMethodList.append(i)
+        self.setOwner(parent)
+
+
+
+    def setOwner(self,parent) :
+        self.owner=parent
+
+    def poseEffect(self):
+        def noEffect(cls) :
+            pass
+
+        return [noEffect]
+
+    def coveredEffect(self):
+        def noEffect(cls) :
+            pass
+
+        return noEffect
+
+    def compatibTest(self, carte):
+        if not (self.val ==carte.val or self.typ==carte.typ) :
+            return False
+        return True
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
+
+    def caracteristics(self) :
+        dico={"carte":self.id, "owner":self.owner}
+        return dico
+
+class Joueur(Jeu):
+    hand=[]
+    def __init__(self,playNumb,Username="personne_inconnue"):
+        self.num=playNumb
+        self.nom=Username
+        self.hand=[Jeu.pioche() for i in range(7)]
+
+        self.StartMethodList=[]
+        self.PoseMethodList=[]
+        self.restrictions=[]
+
+
+    def answer(self):
+        input("C'est à {} {} de jouer !".format(self.nom,self.num))
+
+        for i in self.StartMethodList : #effets de début de tour
+            if type(i) == classmethod :
+                self.i(self)
+            else :
+                i(self)
+
+
+        print("La carte posée est | ~ {} de {} ~ |".format(Jeu.table.val,Jeu.table.typ))
+        print("Voici vos cartes : ")
+        for i in range(len(self.hand)) :
+            print("| {} : ~ {} de {} ~ |".format(i,self.hand[i].val,self.hand[i].typ))
+        print()
+        if not self.peutJouer() :
+
+            self.pioche()
+            print ("Vous piochez : | {} : ~ {} de {} ~ |".format(len(self.hand)-1,self.hand[len(self.hand)-1].val,self.hand[len(self.hand)-1].typ))
+
+        if not self.peutJouer() :
+            self.endTurn()
+        else :
+            indice=input("Quelle carte poser ? ")
+            try :
+                indice=int(indice)
+            except :
+                while type(indice)!=int :
+                    indice=input("Il faudrait songer à entrer le numéro correspondant : ")
+                    try :
+                        indice=int(indice)
+                    except :
+                        pass
+
+            while(indice<0 or indice>=len(self.hand)) or self.play(indice)==False :
+                indice=input("Vous ne pouvez pas jouer ça. Essayez encore : ")
+                try :
+                    indice=int(indice)
+                except :
+                    while type(indice)!=int :
+                        indice=input("Il faudrait songer à entrer le numéro correspondant : ")
+                        try :
+                            indice=int(indice)
+                        except :
+                            pass
+            self.endTurn()
+
+    def endTurn(self):
+        if Jeu.nextPlayer != self.num :
+            print("C'est la fin de votre tour.")
+        print()
+        self.clearLists()
+
+
+
+    def pioche(self) :
+        self.hand.append(Jeu.pioche())
+
+    def turnEffects(fonction):
+        def effectuer_actions(self, arg2):
+
+            fonction(self, arg2)
+            for i in self.PoseMethodList :
+                if type(i) == classmethod :
+                    self.i(self)
+                else :
+                    i(self)
+
+        return effectuer_actions
+
+    def clearLists(self):
+        self.StartMethodList=[]
+        self.PoseMethodList=[]
+        self.restrictions=[]
+
+    def peutJouer(self): #renvoie vraie si la main du joueur contient au moins une carte jouable
+        Canplay=False
+        for i in self.hand:
+            Canplay = (Canplay or self.verify(i))
+        return Canplay
+
+    def verify(self, carte): #détermine si une carte est jouable en prenant en compte les restricions imposées par...
+
+        canPlay=True
+        canPlay=(canPlay and Jeu.autorisation(carte) )#les modificateurs de jeu en cours
+        canPlay=(canPlay and carte.compatibTest(Jeu.table) )#la carte elle-même
+        for i in self.restrictions : #les diverses restrictions supplémentaires du joueur
+            if i(carte)=="ByPass" : #"code spécial" pour éviter toutes les restricions
+              canPlay=True
+              return canPlay
+
+            else :
+              canPlay=canPlay and i(carte)
+
+        return canPlay
+
+
+    def play(self, cardId):
+        if cardId<0 :
+            cardId=0
+        if cardId>=len(self.hand) :
+            cardId=len(self.hand)-1
+        if self.verify(self.hand[cardId]) :
+            self.pose(cardId)
+            return True
+        else :
+            return False
+
+    @turnEffects
+    def pose(self, cardId):
+        carte = self.hand.pop(cardId)
+        carte.pose(self.num)
+
+    def caracteristics(self) :
+        dico={"Joueur":[self.num,self.nom], "nombre de carte":len(self.hand)}
+        return dico
+
+class Restriction :
+    def __init__(self, condition, carte):
+        self.comparaisonVal=list(condition)
+        self.creator=carte
+        
+    def __call__(self, joueur, carte, jeu):
+        """vérifie si la carte est conforme à la restriction (si sa valeur correspond à une de celles de la liste)"""
+        if len(self.comparaisonVal)==0 :
+            return True
+            
+        if len(self.comparaisonVal)>=1 :
+            flag=False
+            for i in self.comparaisonVal :
+                flag = flag or carte[0]==self.comparaisonVal[i]
+                flag = flag or carte[1]==self.comparaisonVal[i]
+                
+            return flag
+        
+        return True
+
+<<<<<<< HEAD
 class Carte(Jeu):
     def __init__(self, liste):
 
@@ -248,6 +470,22 @@ class Carte(Jeu):
         self.setOwner(joueur.num)
         paquet=joueur.pack()
         return jeu, paquet
+=======
+
+class Special(Carte):
+    '''carte de nous
+    '''
+    def __init__(self, liste):
+        Carte.__init__(self,liste)
+
+    def pose(self, parent=Jeu.getActive()):
+        self.typ=Jeu.table.typ
+        Jeu.pose(self)
+        for i in self.poseEffect():
+            Jeu.player[parent].PoseMethodList.append(i)
+        self.setOwner(parent)
+
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
 
     def setOwner(self, parent):
         self.owner = parent
@@ -265,344 +503,287 @@ class Carte(Jeu):
     def caracteristics(self):
         dico = {"carte": self.id, "owner": self.owner}
         return dico
-
-
-class Joueur(Jeu):
-    hand = []
-
-    def __init__(self, playNumb, Username='en attente de '):
-        self.num = playNumb
-        self.nom = Username
         
-
-        self.StartMethodList = []
-        
-        self.restrictions = []
-        
-    def main_depart(self, jeu):
-        self.hand = [jeu.pioche() for i in range(7)]
-        return jeu.pack()
-        
-    def answer(self, jeu):
-        input("C'est à {} {} de jouer !".format(self.nom, self.num))
-
-        for i in self.StartMethodList:  # effets de début de tour
-                paquet, jeu = i(self, jeu)
-
-        print("La carte posée est | ~ {} de {} ~ |".format(jeu.table.val, jeu.table.typ))
-        print("Voici vos cartes : ")
-        for i in range(len(self.hand)):
-            print("| {} : ~ {} de {} ~ |".format(i, self.hand[i].val, self.hand[i].typ))
-        print()
-        if not self.peutJouer(jeu):
-            jeu = self.pioche(jeu)
-            print("Vous piochez : | {} : ~ {} de {} ~ |".format(len(self.hand) - 1, self.hand[len(self.hand) - 1].val,
-                                                                self.hand[len(self.hand) - 1].typ))
-
-        if not self.peutJouer(jeu):
-            print("Vous ne pouvez pas jouer.")
-            
-        else:
-            indice = input("Quelle carte poser ? ")
-            try:
-                indice = int(indice)
-            except:
-                while type(indice) != int:
-                    indice = input("Il faudrait songer à entrer le numéro correspondant : ")
-                    try:
-                        indice = int(indice)
-                    except:
-                        pass
-
-            while self.playable(indice, jeu) == False:
-                indice = input("Vous ne pouvez pas jouer ça. Essayez encore : ")
-                try:
-                    indice = int(indice)
-                except:
-                    while type(indice) != int:
-                        indice = input("Il faudrait songer à entrer le numéro correspondant : ")
-                        try:
-                            indice = int(indice)
-                        except:
-                            pass
-            jeu = self.pose(indice, jeu)
-            
-        paquet=self.endTurn(jeu)
-        return paquet
-
-    def endTurn(self, jeu):
-        #modifie le jeu
-        if len(self.hand) == 0:
-            self.setVictory()
-        if jeu.nextPlayer != self.num:
-            print("C'est la fin de votre tour.")
-        print()
-        self.clearLists()
-        paquet=jeu.pack()
-        return paquet
-
-    def setVictory(self):
-        pass
-
-    def pioche(self, jeu):
-        #modifie le jeu
-        self.hand.append(jeu.pioche())
-        return jeu
-
-    
-
-    def clearLists(self):
-        self.StartMethodList = []
-        
-        self.restrictions = []
-
-    def peutJouer(self, jeu):  # renvoie vraie si la main du joueur contient au moins une carte jouable
-        Canplay = False
-        for i in self.hand:
-            Canplay = (Canplay or self.verify(i, jeu))
-        return Canplay
-
-    def verify(self, carte, jeu):  # détermine si une carte est jouable en prenant en compte les restricions imposées par...
-
-        canPlay = True
-        # canPlay=(canPlay and jeu.autorisation(carte) )#les modificateurs de jeu en cours
-        canPlay = (canPlay and carte.compatibTest(jeu.table))  # la carte elle-même
-        for i in self.restrictions:  # les diverses restrictions supplémentaires du joueur
-            if i(self, carte, jeu) == "ByPass":  # "code spécial" pour éviter toutes les restricions
-                canPlay = True
-                return canPlay
-
-            else:
-                canPlay = canPlay and i(self, carte, jeu)
-
-        return canPlay
-
-    def playable(self, cardId, jeu):
-        
-        if cardId < 0:
-            cardId = 0
-        if cardId >= len(self.hand):
-            cardId = len(self.hand) - 1
-        return self.verify(self.hand[cardId], jeu)
-        
-    def enregistrer(self):
-
-        data = [
-            self.num, 
-            self.nom, 
-            self.hand,
-            self.StartMethodList,
-            
-            self.restrictions
-        ]
-        return data
-        
-    def unpack(self, data):
-
-        [self.num, 
-        self.nom, 
-        self.hand,
-        self.StartMethodList,
-        
-        self.restrictions] = list(data)
-    
-    def pack(self) :
-        self.data=self.enregistrer()
-        return self.data
-    
-    def pose(self, cardId, jeu):
-        #modifie le jeu
-        carte = self.hand.pop(cardId)
-        jeu, paquet = carte.pose(jeu, self)
-        self.unpack(paquet)
-        
-        return jeu
-
-    def caracteristics(self):
-        dico = {"Joueur": [self.num, self.nom], "nombre de carte": len(self.hand)}
-        return dico
-
-
 class Special(Carte):
     '''carte de nous
     '''
 
     def __init__(self, liste):
+<<<<<<< HEAD
         Carte.__init__(self, liste)
 
     def pose(self, jeu, joueur):
-        self.typ = jeu.table.typ
         #modifie le jeu
         #mofifie le joueur
         jeu.pose(self)
         self.setOwner(joueur.num)
-        paquet=joueur.pack()
+        
+        paquet, jeu = self.poseEffect(jeu, joueur)
+        
         return jeu, paquet
-
-class Salamandre(Carte):
+        
+    def poseEffect(self, jeu, joueur):
+        """Effet vierge"""
+        return joueur.pack(), jeu
+    
+    
+        
+        
+class Salamandre(Special):
     ''' equivalent carte +2
     '''
 
     def __init__(self, liste):
         Carte.__init__(self, liste)
         
-    def pose(self, jeu, joueur):
-        #modifie le jeu
-        #mofifie le joueur
-        jeu.pose(self)
-        self.setOwner(joueur.num)
-        
-        paquet, jeu = self.poseEffect(jeu, joueur)
-        
-        return jeu, paquet
         
     def poseEffect(self, jeu, joueur):
 
     
-        #print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
+        
         nextPlayer = (jeu.active + jeu.sens) % jeu.nb_joueurs
 
         
         if "counter" in jeu.extensions :
             jeu.extensions["counter"] += 2
-            #print("Lézard + 2 !!")
         else :
-            #print("Traitement du Lézard")
             jeu.extensions["counter"] = 2
 
         can_play = False
         for i in jeu.player[nextPlayer].hand:
-            can_play = (can_play or i.val == "Salamandre")
+            can_play = (can_play or i.val == "Salamandre" or i.val == "Cataclysme")
 
         if not can_play:
             print("C'est parti pour piocher !")
             for i in range(jeu.extensions["counter"]):
                 jeu = jeu.player[nextPlayer].pioche(jeu)
                 print(
-                    "{} {} pioche !".format(jeu.player[nextPlayer].nom,jeu.player[nextPlayer].num))  # les prints c'est pour pouvoir suivre
+                    "{} {} pioche !".format(jeu.player[nextPlayer].nom,jeu.player[nextPlayer].num))  
             jeu.extensions["counter"] = 0
             jeu.setNextPlayer(2)
 
         else:
-            print("il parait que tu peux jouer dis donc !")
-            def restriction(joueur, carte, jeu):
-                return jeu.table.val == carte.val
-            jeu.player[nextPlayer].restrictions.append(restriction)
+            rest=restriction(["Salamandre", "Cataclysme"], self)
+            jeu.player[nextPlayer].restrictions.append(rest)
             
         return joueur.pack(), jeu
 
-        
+=======
+        Carte.__init__(self,liste)
+
+    def poseEffect(self):
+
+        def piocheur(cls):
+            print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
+            nextPlayer=(Jeu.active + Jeu.sens)%cls.nb_joueurs
+
+            try :
+
+                Jeu.counter +=2
+                print("Lézard + 2 !!")
+            except :
+                print("Traitement du Lézard")
+                Jeu.counter = 2
+
+            can_play=False
+            for i in Jeu.player[nextPlayer].hand :
+                can_play=(can_play or i.typ == "Salamandre")
+
+            if not can_play :
+                print("C'est parti pour piocher !")
+                for i in range(Jeu.counter):
+                    Jeu.player[nextPlayer].pioche()
+                    print("Joueur {} pioche !".format(Jeu.player[nextPlayer].num)) #les prints c'est pour pouvoir suivre
+                Jeu.counter = 0
+                Jeu.setNextPlayer(2)
+
+            else :
+                print("il parait que tu peux jouer dis donc !")
+                def restriction(self, carte):
+                    if Jeu.table.val!=carte.val :
+                        return False
+                Jeu.player[nextPlayer].restrictions.append(restriction)
 
 
+
+
+
+        return [piocheur]
+
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
+
+                
+
+<<<<<<< HEAD
+class Dragon(Special):
+    ''' equivalent carte 'No' '''
+
+=======
 class Dragon(Carte):
     ''' equivalent carte 'No'
     '''
-
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
     def __init__(self, liste):
-        Carte.__init__(self, liste)
+        Carte.__init__(self,liste)
 
-    def poseEffect(self, jeu, joueur):
+    def poseEffect(self):
+        def saut(cls):
+            Jeu.setNextPlayer(2)
 
-        jeu.setNextPlayer(2)
-        return joueur.pack(), jeu
+        return [saut]
 
-    def pose(self, jeu, joueur):
-        #modifie le jeu
-        #mofifie le joueur
-        jeu.pose(self)
-        self.setOwner(joueur.num)
-        
-        paquet, jeu = self.poseEffect(jeu, joueur)
-        
-        return jeu, paquet
 
+<<<<<<< HEAD
+
+class Esprit(Special):
+    ''' equivalent changement de sens'''
+
+=======
 class Esprit(Carte):
     ''' equivalent changement de sens 'sens'
     '''
-
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
     def __init__(self, liste):
-        Carte.__init__(self, liste)
+        Carte.__init__(self,liste)
 
-    def poseEffect(self, jeu,joueur):
-        
-        jeu.sens = jeu.sens * (-1)
-        jeu.setNextPlayer(1)
-        return joueur.pack(), jeu
+<<<<<<< HEAD
+=======
+    def poseEffect(self):
+        def changementSens(cls):
+            Jeu.sens = Jeu.sens*(-1)
+            Jeu.setNextPlayer(1)
 
-    def pose(self, jeu, joueur):
-        #modifie le jeu
-        #mofifie le joueur
-        jeu.pose(self)
-        self.setOwner(joueur.num)
-        
-        paquet, jeu = self.poseEffect(jeu, joueur)
-        
-        return jeu, paquet
-
+        return [changementSens]
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
 
 class Cataclysme(Special):
+    """ equivalent +4 """
     def __init__(self, liste):
+<<<<<<< HEAD
         Carte.__init__(self, liste)
+        
+    def poseEffect(self, jeu, joueur):
+        
+        nextPlayer = (jeu.active + jeu.sens) % jeu.nb_joueurs
+
+        
+        if "counter" in jeu.extensions :
+            jeu.extensions["counter"] += 4
+        else :
+            jeu.extensions["counter"] = 4
+
+        can_play = False
+        for i in jeu.player[nextPlayer].hand:
+            can_play = (can_play or i.val == "Cataclysme")
+
+        if not can_play:
+            print("C'est parti pour piocher !")
+            for i in range(jeu.extensions["counter"]):
+                jeu = jeu.player[nextPlayer].pioche(jeu)
+                print(
+                    "{} {} pioche !".format(jeu.player[nextPlayer].nom,jeu.player[nextPlayer].num))  
+            jeu.extensions["counter"] = 0
+            jeu.setNextPlayer(1)
+
+        else:
+            rest=restriction(["Cataclysme"], self)
+            jeu.player[nextPlayer].restrictions.append(rest)
+        
+        colors=["Braises","Cascade","Bambous","Lumière"]
+        color = int(input("0 : Braises | 1 : Cascade | 2 : Bambous | 3 : Lumière")
+        
+        
+        if abs(color)>=4 : color = 0
+        
+        self.typ=colors[color]
+        
+        return joueur.pack(), jeu
+
 
     def compatibTest(self, carte):
-        if type(carte.val) == str and str(carte.val) != "Dragon":
-            return False
-        elif type(carte.val) == str and str(carte.val) == "Dragon":
-            return True
-        elif carte.val == 0:
-            return True
-        return False
-
-
+        return True
+    
+    
 class Tempete(Special):
+    """ equivalent joker"""
     def __init__(self, liste):
         liste[0] = "Tempête"
         Carte.__init__(self, liste)
+        
+    def poseEffect(self, jeu, joueur):
+        colors=["Braises","Cascade","Bambous","Lumière"]
+        color = int(input("0 : Braises | 1 : Cascade | 2 : Bambous | 3 : Lumière")
+        if abs(color)>=4 : color = 0
+        
+        self.typ=colors[color]
+        
+        return joueur.pack(), jeu
+=======
+        Carte.__init__(self,liste)
 
     def compatibTest(self, carte):
-        if type(carte.val) == str and str(carte.val) != "Esprit":
+        if type(carte.val)==str and str(carte.val)!="Dragon":
             return False
-        elif type(carte.val) == str and str(carte.val) == "Esprit":
+        elif type(carte.val)==str and str(carte.val)=="Dragon":
             return True
-        elif carte.val < 5:
+        elif carte.val==0:
             return True
         return False
 
 
-class Benediction(Special):
+class Tempete (Special):
     def __init__(self, liste):
-        liste[0] = "Bénédiction"
-        Carte.__init__(self, liste)
+        liste[0]="Tempête"
+        Carte.__init__(self,liste)
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
 
+    
     def compatibTest(self, carte):
-        if type(carte.val) == str:
+<<<<<<< HEAD
+        return True
+
+"""
+class Benediction(Special):
+=======
+        if type(carte.val)==str and str(carte.val)!="Esprit":
             return False
-        elif carte.val > 7:
+        elif type(carte.val)==str and str(carte.val)=="Esprit":
+            return True
+        elif carte.val<5:
             return True
         return False
 
+class Benediction (Special):
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
+    def __init__(self, liste):
+        liste[0]="Bénédiction"
+        Carte.__init__(self,liste)
 
-def login():
-    '''Fct de démonstration et de test.
-    Par Joris Placette
-    '''
-    host = "127.0.0.1"
-    port = 8082
-    print("Saisir 'q' pour obtenir un terminal de commande")
-    nickname = str(input("saisir un pseudo (inferieur à 10 caractères):  "))
-    password = "lol ;')"
-    global MyNet
-    MyNet = Net(host, port, nickname, password)
-
-    MyNet.Identify()  # séquence d'identification
-    if MyNet.Connected == True:
-        print("Vous êtes connecté en tant que {}".format(MyNet.WhoAmI()))
-        print("Pour envoyer les données taper 'network.Transmit(données)' ")
-    else:
-        print("Vous n'êtes pas connecté")
+    def compatibTest(self, carte):
+        if type(carte.val)==str:
+            return False
+        elif carte.val>7:
+            return True
+        return False
+<<<<<<< HEAD
+"""
 
 
 if __name__ == '__main__':
     global a
     a = Jeu(True)
-    # login()
+
+=======
+
+if __name__=='__main__':
+
+    pseudo = input('pseudo')
+    #host = input('host')
+    """port =8082
+    host = '127.0.0.1'
+    myNet = client.Net(host,port,pseudo, 'mdp')
+    myNet.Identify()"""
+    a=Jeu(True)
+
+paquet=("indice","pseudo")
+>>>>>>> 589409d635cff7bd26985000122fb9150eba056c
