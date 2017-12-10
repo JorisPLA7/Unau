@@ -244,32 +244,23 @@ class Carte(Jeu):
         #modifie le jeu
         #mofifie le joueur
         jeu.pose(self)
-        effects=[i for i in self.poseEffect()]
         self.setOwner(joueur.num)
-        joueur.PoseMethodList.extend(effects)
         paquet=joueur.pack()
         return jeu, paquet
 
     def setOwner(self, parent):
         self.owner = parent
 
-    def poseEffect(self):
-        def noEffect(joueur, jeu):
-            return joueur.pack(), jeu
-
-        return [noEffect]
 
     def coveredEffect(self):
         def noEffect(joueur, jeu):
-            pass
+            return joueur.pack(), jeu
 
         return noEffect
 
     def compatibTest(self, carte):
-        if not (self.val == carte.val or self.typ == carte.typ):
-            return False
-        return True
-
+        return (self.val == carte.val or self.typ == carte.typ)
+        
     def caracteristics(self):
         dico = {"carte": self.id, "owner": self.owner}
         return dico
@@ -284,7 +275,7 @@ class Joueur(Jeu):
         
 
         self.StartMethodList = []
-        self.PoseMethodList = []
+        
         self.restrictions = []
         
     def main_depart(self, jeu):
@@ -361,7 +352,7 @@ class Joueur(Jeu):
 
     def clearLists(self):
         self.StartMethodList = []
-        self.PoseMethodList = []
+        
         self.restrictions = []
 
     def peutJouer(self, jeu):  # renvoie vraie si la main du joueur contient au moins une carte jouable
@@ -400,7 +391,7 @@ class Joueur(Jeu):
             self.nom, 
             self.hand,
             self.StartMethodList,
-            self.PoseMethodList,
+            
             self.restrictions
         ]
         return data
@@ -411,7 +402,7 @@ class Joueur(Jeu):
         self.nom, 
         self.hand,
         self.StartMethodList,
-        self.PoseMethodList,
+        
         self.restrictions] = list(data)
     
     def pack(self) :
@@ -422,11 +413,6 @@ class Joueur(Jeu):
         #modifie le jeu
         carte = self.hand.pop(cardId)
         jeu, paquet = carte.pose(jeu, self)
-        self.unpack(paquet)
-        for i in self.PoseMethodList :
-            
-            paquet, jeu = i(self, jeu)
-            
         self.unpack(paquet)
         
         return jeu
@@ -448,9 +434,7 @@ class Special(Carte):
         #modifie le jeu
         #mofifie le joueur
         jeu.pose(self)
-        effects=[i for i in self.poseEffect()]
         self.setOwner(joueur.num)
-        joueur.PoseMethodList.extend(effects)
         paquet=joueur.pack()
         return jeu, paquet
 
@@ -460,43 +444,53 @@ class Salamandre(Carte):
 
     def __init__(self, liste):
         Carte.__init__(self, liste)
-
+        
+    def pose(self, jeu, joueur):
+        #modifie le jeu
+        #mofifie le joueur
+        jeu.pose(self)
+        self.setOwner(joueur.num)
+        
+        paquet, jeu = self.poseEffect()
+        
+        return jeu, paquet
+        
     def poseEffect(self):
 
-        def piocheur(joueur, jeu):
-            #print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
-            nextPlayer = (jeu.active + jeu.sens) % jeu.nb_joueurs
+    
+        #print("Y'a comme un Lézard...")  # déboguage... ça marche !!!!!!!!!!!
+        nextPlayer = (jeu.active + jeu.sens) % jeu.nb_joueurs
 
+        
+        if "counter" in jeu.extensions :
+            jeu.extensions["counter"] += 2
+            #print("Lézard + 2 !!")
+        else :
+            #print("Traitement du Lézard")
+            jeu.extensions["counter"] = 2
+
+        can_play = False
+        for i in jeu.player[nextPlayer].hand:
+            can_play = (can_play or i.val == "Salamandre")
+
+        if not can_play:
+            print("C'est parti pour piocher !")
+            for i in range(jeu.extensions["counter"]):
+                jeu = jeu.player[nextPlayer].pioche(jeu)
+                print(
+                    "{} {} pioche !".format(jeu.player[nextPlayer].nom,jeu.player[nextPlayer].num))  # les prints c'est pour pouvoir suivre
+            jeu.extensions["counter"] = 0
+            jeu.setNextPlayer(2)
+
+        else:
+            print("il parait que tu peux jouer dis donc !")
+            def restriction(joueur, carte, jeu):
+                return jeu.table.val == carte.val
+            jeu.player[nextPlayer].restrictions.append(restriction)
             
-            if "counter" in jeu.extensions :
-                jeu.extensions["counter"] += 2
-                #print("Lézard + 2 !!")
-            else :
-                #print("Traitement du Lézard")
-                jeu.extensions["counter"] = 2
+        return joueur.pack(), jeu
 
-            can_play = False
-            for i in jeu.player[nextPlayer].hand:
-                can_play = (can_play or i.val == "Salamandre")
-
-            if not can_play:
-                print("C'est parti pour piocher !")
-                for i in range(jeu.extensions["counter"]):
-                    jeu = jeu.player[nextPlayer].pioche(jeu)
-                    print(
-                        "{} {} pioche !".format(jeu.player[nextPlayer].nom,jeu.player[nextPlayer].num))  # les prints c'est pour pouvoir suivre
-                jeu.extensions["counter"] = 0
-                jeu.setNextPlayer(2)
-
-            else:
-                print("il parait que tu peux jouer dis donc !")
-                def restriction(joueur, carte, jeu):
-                    return jeu.table.val == carte.val
-                jeu.player[nextPlayer].restrictions.append(restriction)
-                
-            return joueur.pack(), jeu
-
-        return [piocheur]
+        
 
 
 class Dragon(Carte):
@@ -507,12 +501,19 @@ class Dragon(Carte):
         Carte.__init__(self, liste)
 
     def poseEffect(self):
-        def saut(joueur, jeu):
-            jeu.setNextPlayer(2)
-            return joueur.pack(), jeu
 
-        return [saut]
+        jeu.setNextPlayer(2)
+        return joueur.pack(), jeu
 
+    def pose(self, jeu, joueur):
+        #modifie le jeu
+        #mofifie le joueur
+        jeu.pose(self)
+        self.setOwner(joueur.num)
+        
+        paquet, jeu = self.poseEffect()
+        
+        return jeu, paquet
 
 class Esprit(Carte):
     ''' equivalent changement de sens 'sens'
@@ -522,12 +523,20 @@ class Esprit(Carte):
         Carte.__init__(self, liste)
 
     def poseEffect(self):
-        def changementSens(joueur, jeu):
-            jeu.sens = jeu.sens * (-1)
-            jeu.setNextPlayer(1)
-            return joueur.pack(), jeu
+        
+        jeu.sens = jeu.sens * (-1)
+        jeu.setNextPlayer(1)
+        return joueur.pack(), jeu
 
-        return [changementSens]
+    def pose(self, jeu, joueur):
+        #modifie le jeu
+        #mofifie le joueur
+        jeu.pose(self)
+        self.setOwner(joueur.num)
+        
+        paquet, jeu = self.poseEffect()
+        
+        return jeu, paquet
 
 
 class Cataclysme(Special):
