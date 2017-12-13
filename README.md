@@ -1,5 +1,6 @@
 # Unau
-# DEPRECATED
+# DEPRECIATED
+##  plz folow https://github.com/JorisPLA7/Unau-no-rezo for newer version 
 Jeux de Uno.
 
 
