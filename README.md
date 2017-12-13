@@ -1,5 +1,8 @@
 # Unau
+# DEPRECATED
 Jeux de Uno.
+
+
 
 Fichier uno.py : 
   Jeu de uno basique, sans saveurs nin en tant que jeu ni en tant que programme.
